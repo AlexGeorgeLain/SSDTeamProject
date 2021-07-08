@@ -14,10 +14,13 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
     role = db.Column(db.String(60), nullable=False)
+    key = db.Column(db.String(), nullable=False)
     posts = db.relationship('Post', backref='author', lazy=True)
+    blood_pressure = db.relationship('BloodPressure', backref='author', lazy=True)
+    weight = db.relationship('Weight', backref='author', lazy=True)
 
     def __repr__(self):
-        return f"User('{self.first_name}', '{self.last_name}', '{self.email}', '{self.role}')"
+        return f"User('{self.first_name}', '{self.last_name}', '{self.email}', '{self.role}', '{self.key}')"
 
 
 class Post(db.Model):

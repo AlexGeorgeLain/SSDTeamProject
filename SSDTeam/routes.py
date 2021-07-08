@@ -3,6 +3,8 @@ from flask import render_template, url_for, flash, redirect, request, abort
 from ssdteam.forms import RegistrationForm, LoginForm, PostForm, BloodPressureForm, WeightForm
 from ssdteam import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
+from cryptography.fernet import Fernet
+from datetime import datetime
 
 
 @app.route("/")
@@ -10,10 +12,53 @@ from flask_login import login_user, current_user, logout_user, login_required
 def home():
     if current_user.is_authenticated:
         page = request.args.get('page', 1, type=int)
-        posts = Post.query.filter_by(recipient=current_user.email).order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
+        posts = Post.query.filter_by(recipient=current_user.email).\
+            order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
+
         return render_template('home.html', posts=posts, title='Home')
     else:
         return redirect(url_for('login'))
+
+
+@app.route("/records/bloodpressure")
+@login_required
+def blood_pressure_records():
+    if current_user.is_authenticated:
+        encrypted_posts = BloodPressure.query.\
+            filter_by(user_id=current_user.id).order_by(BloodPressure.date_posted.desc())
+
+        posts = []
+        for post in encrypted_posts:
+            f = Fernet(current_user.key.encode())
+            bp = post.blood_pressure.encode()
+            posts.append({'author': post.author.email,
+                          'date_posted': post.date_posted.strftime('%Y-%m-%d'),
+                          'title': '',
+                          'id': post.user_id,
+                          'blood_pressure': f.decrypt(bp).decode('utf-8')})
+
+        return render_template('bp_records.html', posts=posts, title='Blood Pressure Records')
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route("/bloodpressure", methods=['GET', 'POST'])
+@login_required
+def blood_pressure():
+    form = BloodPressureForm()
+    if form.validate_on_submit():
+
+        encoded_blood_pressure = form.blood_pressure.data.encode()
+        f = Fernet(current_user.key.encode())
+        encrypted_blood_pressure = f.encrypt(encoded_blood_pressure).decode('utf-8')
+
+        bp = BloodPressure(blood_pressure=encrypted_blood_pressure, user_id=current_user.id)
+        db.session.add(bp)
+        db.session.commit()
+
+        flash('Blood pressure submitted.', 'success')
+        return redirect(url_for('blood_pressure'))
+    return render_template('blood_pressure.html', title='New Entry', form=form, legend='New Blood Pressure')
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -25,7 +70,7 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(first_name=form.first_name.data, last_name=form.last_name.data, email=form.email.data, password=hashed_password)
+        user = User(first_name=form.first_name.data, last_name=form.last_name.data, email=form.email.data, password=hashed_password, key=Fernet.generate_key().decode('utf-8'))
         db.session.add(user)
         db.session.commit()
         flash(f'Account created for {form.first_name.data} {form.last_name.data}.', 'success')
@@ -121,19 +166,6 @@ def user_posts(email):
     user = User.query.filter_by(email=email).first_or_404()
     posts = Post.query.filter_by(author=user, recipient=current_user.email).order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
     return render_template('user_posts.html', posts=posts, user=user)
-
-
-@app.route("/bloodpressure", methods=['GET', 'POST'])
-@login_required
-def blood_pressure():
-    form = BloodPressureForm()
-    if form.validate_on_submit():
-        bp = BloodPressure(blood_pressure=form.blood_pressure.data, user_id=current_user.id)
-        db.session.add(bp)
-        db.session.commit()
-        flash('Blood pressure submitted.', 'success')
-        return redirect(url_for('home'))
-    return render_template('blood_pressure.html', title='New Entry', form=form, legend='New Blood Pressure')
 
 
 @app.route("/weight", methods=['GET', 'POST'])
