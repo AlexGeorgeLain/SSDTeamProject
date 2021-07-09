@@ -4,7 +4,7 @@ from ssdteam.forms import RegistrationForm, LoginForm, PostForm, BloodPressureFo
 from ssdteam import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 from cryptography.fernet import Fernet
-from datetime import datetime
+from ssdteam.encryption import encrypt_medical_record, decrypt_medical_record
 
 
 @app.route("/")
@@ -44,17 +44,26 @@ def logout():
     return redirect(url_for('home'))
 
 
+@app.route("/post/new", methods=['GET', 'POST'])
+@login_required
+def new_post():
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(recipient=form.recipient.data, title=form.title.data, content=form.content.data, author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash('Post created.', 'success')
+        return redirect(url_for('home'))
+    return render_template('create_post.html', title='New Post', form=form, legend='New Post')
+
+
 @app.route("/bloodpressure", methods=['GET', 'POST'])
 @login_required
 def blood_pressure():
     form = BloodPressureForm()
     if form.validate_on_submit():
-
-        encoded_blood_pressure = form.blood_pressure.data.encode()
-        f = Fernet(current_user.key.encode())
-        encrypted_blood_pressure = f.encrypt(encoded_blood_pressure).decode('utf-8')
-
-        bp = BloodPressure(blood_pressure=encrypted_blood_pressure, user_id=current_user.id)
+        encrypted_blood_pressure = encrypt_medical_record(form.blood_pressure.data, current_user.key)
+        bp = BloodPressure(record=encrypted_blood_pressure, user_id=current_user.id)
         db.session.add(bp)
         db.session.commit()
 
@@ -70,16 +79,9 @@ def blood_pressure_records():
         encrypted_posts = BloodPressure.query.\
             filter_by(user_id=current_user.id).order_by(BloodPressure.date_posted.desc())
 
-        posts = []
-        for post in encrypted_posts:
-            f = Fernet(current_user.key.encode())
-            bp = post.blood_pressure.encode()
-            posts.append({'author': post.author.email,
-                          'date_posted': post.date_posted.strftime('%Y-%m-%d'),
-                          'id': post.user_id,
-                          'blood_pressure': f.decrypt(bp).decode('utf-8')})
+        posts = decrypt_medical_record(encrypted_posts, current_user.key)
 
-        return render_template('bp_records.html', posts=posts, title='Blood Pressure Records')
+        return render_template('single_medical_record.html', posts=posts, title='Blood Pressure Records')
     else:
         return redirect(url_for('login'))
 
@@ -89,12 +91,8 @@ def blood_pressure_records():
 def weight():
     form = WeightForm()
     if form.validate_on_submit():
-
-        encoded_weight = form.weight.data.encode()
-        f = Fernet(current_user.key.encode())
-        encrypted_weight = f.encrypt(encoded_weight).decode('utf-8')
-
-        weight_new = Weight(weight=encrypted_weight, user_id=current_user.id)
+        encrypted_weight = encrypt_medical_record(form.weight.data, current_user.key)
+        weight_new = Weight(record=encrypted_weight, user_id=current_user.id)
         db.session.add(weight_new)
         db.session.commit()
 
@@ -110,31 +108,11 @@ def weight_records():
         encrypted_posts = Weight.query.\
             filter_by(user_id=current_user.id).order_by(Weight.date_posted.desc())
 
-        posts = []
-        for post in encrypted_posts:
-            f = Fernet(current_user.key.encode())
-            weight = post.weight.encode()
-            posts.append({'author': post.author.email,
-                          'date_posted': post.date_posted.strftime('%Y-%m-%d'),
-                          'id': post.user_id,
-                          'weight': f.decrypt(weight).decode('utf-8')})
+        posts = decrypt_medical_record(encrypted_posts, current_user.key)
 
-        return render_template('weight_records.html', posts=posts, title='Weight Records')
+        return render_template('single_medical_record.html', posts=posts, title='Weight Records')
     else:
         return redirect(url_for('login'))
-
-
-@app.route("/post/new", methods=['GET', 'POST'])
-@login_required
-def new_post():
-    form = PostForm()
-    if form.validate_on_submit():
-        post = Post(recipient=form.recipient.data, title=form.title.data, content=form.content.data, author=current_user)
-        db.session.add(post)
-        db.session.commit()
-        flash('Post created.', 'success')
-        return redirect(url_for('home'))
-    return render_template('create_post.html', title='New Post', form=form, legend='New Post')
 
 
 @app.route("/register", methods=['GET', 'POST'])
