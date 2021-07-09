@@ -11,12 +11,17 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    role = StringField("Role: 'Admin', 'Astronaut', or 'Medic'", validators=[DataRequired()] )
     submit = SubmitField('Register User')
 
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user:
             raise ValidationError('Email already in use')
+
+    def validate_role(self, role):
+        if role.data not in ['Admin', 'Astronaut', 'Medic']:
+            raise ValidationError("Role must be either 'Admin', 'Astronaut', or 'Medic'")
 
 
 class LoginForm(FlaskForm):

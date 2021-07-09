@@ -20,25 +20,28 @@ def home():
         return redirect(url_for('login'))
 
 
-@app.route("/records/bloodpressure")
-@login_required
-def blood_pressure_records():
+@app.route("/login", methods=['GET', 'POST'])
+def login():
     if current_user.is_authenticated:
-        encrypted_posts = BloodPressure.query.\
-            filter_by(user_id=current_user.id).order_by(BloodPressure.date_posted.desc())
+        return redirect(url_for('home'))
 
-        posts = []
-        for post in encrypted_posts:
-            f = Fernet(current_user.key.encode())
-            bp = post.blood_pressure.encode()
-            posts.append({'author': post.author.email,
-                          'date_posted': post.date_posted.strftime('%Y-%m-%d'),
-                          'id': post.user_id,
-                          'blood_pressure': f.decrypt(bp).decode('utf-8')})
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('home'))
+        else:
+            flash("Login failed", 'danger')
 
-        return render_template('bp_records.html', posts=posts, title='Blood Pressure Records')
-    else:
-        return redirect(url_for('login'))
+    return render_template('login.html', title='Login', form=form)
+
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
 
 
 @app.route("/bloodpressure", methods=['GET', 'POST'])
@@ -58,6 +61,27 @@ def blood_pressure():
         flash('Blood pressure submitted.', 'success')
         return redirect(url_for('blood_pressure'))
     return render_template('blood_pressure.html', title='New Entry', form=form, legend='New Blood Pressure')
+
+
+@app.route("/records/bloodpressure")
+@login_required
+def blood_pressure_records():
+    if current_user.is_authenticated:
+        encrypted_posts = BloodPressure.query.\
+            filter_by(user_id=current_user.id).order_by(BloodPressure.date_posted.desc())
+
+        posts = []
+        for post in encrypted_posts:
+            f = Fernet(current_user.key.encode())
+            bp = post.blood_pressure.encode()
+            posts.append({'author': post.author.email,
+                          'date_posted': post.date_posted.strftime('%Y-%m-%d'),
+                          'id': post.user_id,
+                          'blood_pressure': f.decrypt(bp).decode('utf-8')})
+
+        return render_template('bp_records.html', posts=posts, title='Blood Pressure Records')
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route("/weight", methods=['GET', 'POST'])
@@ -100,53 +124,6 @@ def weight_records():
         return redirect(url_for('login'))
 
 
-@app.route("/register", methods=['GET', 'POST'])
-@login_required
-def register():
-    if current_user.role != 'Admin':
-        abort(403)
-
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(first_name=form.first_name.data, last_name=form.last_name.data, email=form.email.data, password=hashed_password, key=Fernet.generate_key().decode('utf-8'))
-        db.session.add(user)
-        db.session.commit()
-        flash(f'Account created for {form.first_name.data} {form.last_name.data}.', 'success')
-        return redirect(url_for('register'))
-    return render_template('register.html', title='Register', form=form)
-
-
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
-
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user and bcrypt.check_password_hash(user.password, form.password.data):
-            login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('home'))
-        else:
-            flash("Login failed", 'danger')
-
-    return render_template('login.html', title='Login', form=form)
-
-
-@app.route("/logout")
-def logout():
-    logout_user()
-    return redirect(url_for('home'))
-
-
-@app.route("/account",  methods=['GET', 'POST'])
-@login_required
-def account():
-    return render_template('account.html', title='Account')
-
-
 @app.route("/post/new", methods=['GET', 'POST'])
 @login_required
 def new_post():
@@ -158,6 +135,30 @@ def new_post():
         flash('Post created.', 'success')
         return redirect(url_for('home'))
     return render_template('create_post.html', title='New Post', form=form, legend='New Post')
+
+
+@app.route("/register", methods=['GET', 'POST'])
+@login_required
+def register():
+    if current_user.role != 'Admin':
+        abort(403)
+
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user = User(first_name=form.first_name.data, last_name=form.last_name.data,
+                    email=form.email.data, password=hashed_password, key=Fernet.generate_key().decode('utf-8'))
+        db.session.add(user)
+        db.session.commit()
+        flash(f'Account created for {form.first_name.data} {form.last_name.data}.', 'success')
+        return redirect(url_for('register'))
+    return render_template('register.html', title='Register', form=form)
+
+
+@app.route("/account",  methods=['GET', 'POST'])
+@login_required
+def account():
+    return render_template('account.html', title='Account')
 
 
 @app.route("/post/<int:post_id>")
@@ -203,5 +204,6 @@ def delete_post(post_id):
 def user_posts(email):
     page = request.args.get('page', 1, type=int)
     user = User.query.filter_by(email=email).first_or_404()
-    posts = Post.query.filter_by(author=user, recipient=current_user.email).order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
+    posts = Post.query.filter_by(author=user, recipient=current_user.email).\
+        order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
     return render_template('user_posts.html', posts=posts, user=user)
