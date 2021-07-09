@@ -1,4 +1,4 @@
-from ssdteam.models import User, Post, BloodPressure
+from ssdteam.models import User, Post, BloodPressure, Weight
 from flask import render_template, url_for, flash, redirect, request, abort
 from ssdteam.forms import RegistrationForm, LoginForm, PostForm, BloodPressureForm, WeightForm
 from ssdteam import app, db, bcrypt
@@ -33,7 +33,6 @@ def blood_pressure_records():
             bp = post.blood_pressure.encode()
             posts.append({'author': post.author.email,
                           'date_posted': post.date_posted.strftime('%Y-%m-%d'),
-                          'title': '',
                           'id': post.user_id,
                           'blood_pressure': f.decrypt(bp).decode('utf-8')})
 
@@ -59,6 +58,46 @@ def blood_pressure():
         flash('Blood pressure submitted.', 'success')
         return redirect(url_for('blood_pressure'))
     return render_template('blood_pressure.html', title='New Entry', form=form, legend='New Blood Pressure')
+
+
+@app.route("/weight", methods=['GET', 'POST'])
+@login_required
+def weight():
+    form = WeightForm()
+    if form.validate_on_submit():
+
+        encoded_weight = form.weight.data.encode()
+        f = Fernet(current_user.key.encode())
+        encrypted_weight = f.encrypt(encoded_weight).decode('utf-8')
+
+        weight_new = Weight(weight=encrypted_weight, user_id=current_user.id)
+        db.session.add(weight_new)
+        db.session.commit()
+
+        flash('Weight submitted.', 'success')
+        return redirect(url_for('weight'))
+    return render_template('weight.html', title='New Entry', form=form, legend='New Weight')
+
+
+@app.route("/records/weight")
+@login_required
+def weight_records():
+    if current_user.is_authenticated:
+        encrypted_posts = Weight.query.\
+            filter_by(user_id=current_user.id).order_by(Weight.date_posted.desc())
+
+        posts = []
+        for post in encrypted_posts:
+            f = Fernet(current_user.key.encode())
+            weight = post.weight.encode()
+            posts.append({'author': post.author.email,
+                          'date_posted': post.date_posted.strftime('%Y-%m-%d'),
+                          'id': post.user_id,
+                          'weight': f.decrypt(weight).decode('utf-8')})
+
+        return render_template('weight_records.html', posts=posts, title='Weight Records')
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -166,16 +205,3 @@ def user_posts(email):
     user = User.query.filter_by(email=email).first_or_404()
     posts = Post.query.filter_by(author=user, recipient=current_user.email).order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
     return render_template('user_posts.html', posts=posts, user=user)
-
-
-@app.route("/weight", methods=['GET', 'POST'])
-@login_required
-def weight():
-    form = WeightForm()
-    if form.validate_on_submit():
-        bp = WeightForm(weight=form.weight.data, user_id=current_user.id)
-        db.session.add(bp)
-        db.session.commit()
-        flash('Blood pressure submitted.', 'success')
-        return redirect(url_for('home'))
-    return render_template('weight.html', title='New Entry', form=form, legend='New Weight')
