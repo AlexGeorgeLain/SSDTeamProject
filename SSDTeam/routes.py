@@ -4,16 +4,19 @@ from ssdteam.forms import RegistrationForm, LoginForm, PostForm, BloodPressureFo
 from ssdteam import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 from cryptography.fernet import Fernet
-from ssdteam.encryption import encrypt_medical_record, decrypt_medical_record
+from ssdteam.encryption import encrypt_medical_record, decrypt_medical_record, encrypt_post, decrypt_post
 
 
 @app.route("/")
 @app.route("/home")
 def home():
     if current_user.is_authenticated:
-        page = request.args.get('page', 1, type=int)
-        posts = Post.query.filter_by(recipient=current_user.email).\
-            order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
+        encrypted_content = Post.query.filter_by(recipient=current_user.email).order_by(Post.date_posted.desc())
+
+        posts = decrypt_post(encrypted_content, current_user.key)
+
+        """page = request.args.get('page', 1, type=int)
+        posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)"""
 
         return render_template('home.html', posts=posts, title='Home')
     else:
@@ -49,11 +52,16 @@ def logout():
 def new_post():
     form = PostForm()
     if form.validate_on_submit():
-        post = Post(recipient=form.recipient.data, title=form.title.data, content=form.content.data, author=current_user)
+
+        encrypted_content = encrypt_post(form.content.data, form.recipient.data)
+
+        post = Post(recipient=form.recipient.data, title=form.title.data, content=encrypted_content, author=current_user)
         db.session.add(post)
         db.session.commit()
+
         flash('Post created.', 'success')
         return redirect(url_for('home'))
+
     return render_template('create_post.html', title='New Post', form=form, legend='New Post')
 
 
@@ -63,12 +71,14 @@ def blood_pressure():
     form = BloodPressureForm()
     if form.validate_on_submit():
         encrypted_blood_pressure = encrypt_medical_record(form.blood_pressure.data, current_user.key)
+
         bp = BloodPressure(record=encrypted_blood_pressure, user_id=current_user.id)
         db.session.add(bp)
         db.session.commit()
 
         flash('Blood pressure submitted.', 'success')
         return redirect(url_for('blood_pressure'))
+
     return render_template('blood_pressure.html', title='New Entry', form=form, legend='New Blood Pressure')
 
 
