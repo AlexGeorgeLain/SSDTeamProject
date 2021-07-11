@@ -4,7 +4,7 @@
         <article class="media content-section">
           <div class="media-body">
             <div class="article-metadata">
-              <a class="mr-2" href="{{ url_for('user_posts', email=post['author']) }}">{{ post['author'] }}</a>
+              <a class="mr-2" href="{{ url_for('user_account', email=post['author']) }}">{{ post['author'] }}</a>
               <small class="text-muted">{{ post['date_posted'] }}</small>
             </div>
             <p class="article-content">{{ post['record'] }}</p>

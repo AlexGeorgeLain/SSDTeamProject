@@ -15,9 +15,6 @@ def home():
 
         posts = decrypt_post(encrypted_content, current_user.key)
 
-        """page = request.args.get('page', 1, type=int)
-        posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)"""
-
         return render_template('home.html', posts=posts, title='Home')
     else:
         return redirect(url_for('login'))
@@ -127,7 +124,7 @@ def weight_records():
 
 @app.route("/astronauts")
 @login_required
-def astronauts_list():
+def astronauts():
     if current_user.is_authenticated:
         posts = User.query.filter_by(role='Astronaut').all()
 
@@ -136,7 +133,7 @@ def astronauts_list():
         return redirect(url_for('login'))
 
 
-@app.route("/astronauts/<string:email>/bloodpressure")
+@app.route("/accounts/<string:email>/bloodpressure")
 @login_required
 def astronauts_blood_pressure(email):
     if current_user.is_authenticated:
@@ -150,7 +147,7 @@ def astronauts_blood_pressure(email):
         return redirect(url_for('login'))
 
 
-@app.route("/astronauts/<string:email>/weight")
+@app.route("/accounts/<string:email>/weight")
 @login_required
 def astronauts_weight(email):
     if current_user.is_authenticated:
@@ -162,6 +159,42 @@ def astronauts_weight(email):
         return render_template('single_medical_record.html', posts=posts, title='Weight')
     else:
         return redirect(url_for('login'))
+
+
+@app.route("/accounts/<string:email>/posts")
+@login_required
+def user_posts(email):
+    if current_user.is_authenticated:
+        user = User.query.filter_by(email=email).first()
+        encrypted_posts = db.session.query(Post)\
+            .filter(((Post.user_id == user.id) & (Post.recipient == current_user.email))\
+                    | ((Post.user_id == current_user.id) & (Post.recipient == user.id)))\
+            .all()
+
+        posts = []
+
+        print(encrypted_posts)
+
+        for post in encrypted_posts:
+            post = [post]
+            if post[0].recipient == current_user.email:
+                posts.append(decrypt_post(post, current_user.key)[0])
+
+            if post[0].recipient == user.email:
+                posts.append(decrypt_post(post, user.key)[0])
+
+
+        return render_template('home.html', posts=posts, title='Posts')
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route("/accounts/<string:email>",  methods=['GET', 'POST'])
+@login_required
+def user_account(email):
+    user = User.query.filter_by(email=email).first()
+
+    return render_template('user_account.html', user=user, title='Account')
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -182,10 +215,42 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 
+@app.route("/user/<string:email>/delete", methods=['POST'])
+@login_required
+def delete_user(email):
+    if current_user.role == 'Admin':
+        user = User.query.filter_by(email=email).first()
+        posts_received = Post.query.filter_by(recipient=user.email).all()
+        posts = Post.query.filter_by(user_id=user.id).all()
+        blood_pressures = BloodPressure.query.filter_by(user_id=user.id).all()
+        weights = Weight.query.filter_by(user_id=user.id).all()
+
+        for weight in weights:
+            db.session.delete(weight)
+
+        for bp in blood_pressures:
+            db.session.delete(bp)
+
+        for post in posts:
+            db.session.delete(post)
+
+        for post in posts_received:
+            db.session.delete(post)
+
+        db.session.delete(user)
+
+        db.session.commit()
+        flash('User deleted.', 'success')
+        return redirect(url_for('astronauts'))
+
+    else:
+        return redirect(url_for('home'))
+
+
 @app.route("/account",  methods=['GET', 'POST'])
 @login_required
 def account():
-    return render_template('account.html', title='Account')
+    return render_template('account.html', title='My Account')
 
 
 @app.route("/post/<int:post_id>")
@@ -224,13 +289,3 @@ def delete_post(post_id):
     db.session.commit()
     flash('Post deleted.', 'success')
     return redirect(url_for('home'))
-
-
-@app.route("/user/<string:email>")
-@login_required
-def user_posts(email):
-    page = request.args.get('page', 1, type=int)
-    user = User.query.filter_by(email=email).first_or_404()
-    posts = Post.query.filter_by(author=user, recipient=current_user.email).\
-        order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
-    return render_template('user_posts.html', posts=posts, user=user)
