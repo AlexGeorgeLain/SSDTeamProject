@@ -167,21 +167,22 @@ def user_posts(email):
     if current_user.is_authenticated:
         user = User.query.filter_by(email=email).first()
         encrypted_posts = db.session.query(Post)\
-            .filter(((Post.user_id == user.id) & (Post.recipient == current_user.email))\
-                    | ((Post.user_id == current_user.id) & (Post.recipient == user.id)))\
-            .all()
+            .where(((Post.user_id == user.id) & (Post.recipient == current_user.email))
+                   | ((Post.user_id == current_user.id) & (Post.recipient == user.email)))\
+            .order_by(Post.date_posted.desc()).all()
 
         posts = []
 
-        print(encrypted_posts)
-
         for post in encrypted_posts:
-            post = [post]
-            if post[0].recipient == current_user.email:
-                posts.append(decrypt_post(post, current_user.key)[0])
+            post_list = [post]
+            if post_list[0].recipient == current_user.email:
+                posts.append(decrypt_post(post_list, current_user.key)[0])
 
-            if post[0].recipient == user.email:
-                posts.append(decrypt_post(post, user.key)[0])
+            if post_list[0].recipient == user.email:
+                posts.append(decrypt_post(post_list, user.key)[0])
+
+        print(encrypted_posts)
+        print(posts)
 
 
         return render_template('home.html', posts=posts, title='Posts')

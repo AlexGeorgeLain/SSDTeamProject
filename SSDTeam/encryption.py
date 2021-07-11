@@ -45,6 +45,7 @@ def decrypt_post(encrypted_posts, key):
         decrypted_posts.append({'author': post.author.email,
                                 'date_posted': post.date_posted.strftime('%Y-%m-%d'),
                                 'id': post.user_id,
+                                'title': post.title,
                                 'content': decrypted_data})
 
     return decrypted_posts
