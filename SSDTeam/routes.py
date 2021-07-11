@@ -125,6 +125,45 @@ def weight_records():
         return redirect(url_for('login'))
 
 
+@app.route("/astronauts")
+@login_required
+def astronauts_list():
+    if current_user.is_authenticated:
+        posts = User.query.filter_by(role='Astronaut').all()
+
+        return render_template('astronauts.html', posts=posts, title='Astronauts')
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route("/astronauts/<string:email>/bloodpressure")
+@login_required
+def astronauts_blood_pressure(email):
+    if current_user.is_authenticated:
+        user_id = User.query.filter_by(email=email).first().id
+        encrypted_bp = BloodPressure.query.filter_by(user_id=user_id).all()
+
+        posts = decrypt_medical_record(encrypted_bp, User.query.filter_by(email=email).first().key)
+
+        return render_template('single_medical_record.html', posts=posts, title='Blood Pressure')
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route("/astronauts/<string:email>/weight")
+@login_required
+def astronauts_weight(email):
+    if current_user.is_authenticated:
+        user_id = User.query.filter_by(email=email).first().id
+        encrypted_weight = Weight.query.filter_by(user_id=user_id).all()
+
+        posts = decrypt_medical_record(encrypted_weight, User.query.filter_by(email=email).first().key)
+
+        return render_template('single_medical_record.html', posts=posts, title='Weight')
+    else:
+        return redirect(url_for('login'))
+
+
 @app.route("/register", methods=['GET', 'POST'])
 @login_required
 def register():
