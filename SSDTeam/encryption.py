@@ -17,9 +17,9 @@ def decrypt_medical_record(encrypted_posts, key):
         encrypted_data = post.record.encode()
         decrypted_data = f.decrypt(encrypted_data).decode('utf-8')
 
-        decrypted_posts.append({'author': post.author.email,
+        decrypted_posts.append({'id': post.id,
+                                'author': post.author.email,
                                 'date_posted': post.date_posted.strftime('%Y-%m-%d'),
-                                'id': post.user_id,
                                 'record': decrypted_data})
 
     return decrypted_posts
@@ -42,9 +42,10 @@ def decrypt_post(encrypted_posts, key):
         encrypted_data = post.content.encode()
         decrypted_data = f.decrypt(encrypted_data).decode('utf-8')
 
-        decrypted_posts.append({'author': post.author.email,
+        decrypted_posts.append({'id': post.id,
+                                'author': post.author.email,
+                                'recipient': post.recipient,
                                 'date_posted': post.date_posted.strftime('%Y-%m-%d'),
-                                'id': post.user_id,
                                 'title': post.title,
                                 'content': decrypted_data})
 

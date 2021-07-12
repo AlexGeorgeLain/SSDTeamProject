@@ -1,10 +1,13 @@
 from ssdteam.models import User, Post, BloodPressure, Weight
-from flask import render_template, url_for, flash, redirect, request, abort
+from flask import render_template, url_for, flash, redirect, request, abort, after_this_request
 from ssdteam.forms import RegistrationForm, LoginForm, PostForm, BloodPressureForm, WeightForm
 from ssdteam import app, db, bcrypt
 from flask_login import login_user, current_user, logout_user, login_required
 from cryptography.fernet import Fernet
 from ssdteam.encryption import encrypt_medical_record, decrypt_medical_record, encrypt_post, decrypt_post
+from ssdteam.downloads import download_record
+from flask import send_file
+import os
 
 
 @app.route("/")
@@ -137,12 +140,13 @@ def astronauts():
 @login_required
 def astronauts_blood_pressure(email):
     if current_user.is_authenticated:
-        user_id = User.query.filter_by(email=email).first().id
+        user = User.query.filter_by(email=email).first()
+        user_id = user.id
         encrypted_bp = BloodPressure.query.filter_by(user_id=user_id).all()
 
         posts = decrypt_medical_record(encrypted_bp, User.query.filter_by(email=email).first().key)
 
-        return render_template('single_medical_record.html', posts=posts, title='Blood Pressure')
+        return render_template('single_medical_record.html', posts=posts, user=user, title='Blood Pressure')
     else:
         return redirect(url_for('login'))
 
@@ -151,12 +155,13 @@ def astronauts_blood_pressure(email):
 @login_required
 def astronauts_weight(email):
     if current_user.is_authenticated:
-        user_id = User.query.filter_by(email=email).first().id
+        user = User.query.filter_by(email=email).first()
+        user_id = user.id
         encrypted_weight = Weight.query.filter_by(user_id=user_id).all()
 
         posts = decrypt_medical_record(encrypted_weight, User.query.filter_by(email=email).first().key)
 
-        return render_template('single_medical_record.html', posts=posts, title='Weight')
+        return render_template('single_medical_record.html', posts=posts, user=user, title='Weight')
     else:
         return redirect(url_for('login'))
 
@@ -181,9 +186,21 @@ def user_posts(email):
             if post_list[0].recipient == user.email:
                 posts.append(decrypt_post(post_list, user.key)[0])
 
-        return render_template('home.html', posts=posts, title='Posts')
+        return render_template('user_posts.html', posts=posts, user=user, title='Posts')
     else:
         return redirect(url_for('login'))
+
+
+@app.route("/accounts/<string:email>/<string:record_type>/download")
+@login_required
+def download_data(email, record_type):
+
+    @after_this_request
+    def delete_file(response):
+        os.remove('ExportedData.csv')
+        return response
+
+    return download_record(email, record_type)
 
 
 @app.route("/accounts/<string:email>",  methods=['GET', 'POST'])

@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
+    <a class="mr-2" href="{{ url_for('download_data', email=user.email, record_type=title) }}">Download Data</a>
     {% for post in posts %}
         <article class="media content-section">
           <div class="media-body">
