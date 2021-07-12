@@ -17,15 +17,13 @@ user_astro = User(first_name='Astro', last_name='Naut', email='astro@email.com',
 hashed_password_med = bcrypt.generate_password_hash('test123').decode('utf-8')
 user_med = User(first_name='Doctor', last_name='Zoidberg', email='doc@email.com', password=hashed_password_med, role='Medic', key=Fernet.generate_key().decode('utf-8'))
 
-post_1 = Post(title='Test 1', recipient='admin@email.com', content='', user_id=1)
+
 post_2 = Post(title='Testing Testing', recipient='admin@email.com', content='', user_id=2)
 post_3 = Post(title='Test 123', recipient='admin@email.com', content='', user_id=3)
 post_4 = Post(title='This is a Test', recipient='astro@email.com', content='', user_id=1)
-post_5 = Post(title='Rebuild Post', recipient='astro@email.com', content='', user_id=2)
 post_6 = Post(title='To The Moon', recipient='astro@email.com', content='', user_id=3)
 post_7 = Post(title='Space Station 123', recipient='doc@email.com', content='', user_id=1)
 post_8 = Post(title='NASA NASA', recipient='doc@email.com', content='', user_id=2)
-post_9 = Post(title='Test 9', recipient='doc@email.com', content='', user_id=3)
 
 bp_1 = BloodPressure(record='', user_id=2)
 bp_2 = BloodPressure(record='', user_id=2)
@@ -35,7 +33,7 @@ weight_1 = Weight(record='70kg', user_id=2)
 weight_2 = Weight(record='71kg', user_id=2)
 weight_3 = Weight(record='69kg', user_id=2)
 
-posts = [post_1, post_2, post_3, post_4, post_5, post_6, post_7, post_8, post_9]
+posts = [post_2, post_3, post_4, post_6, post_7, post_8]
 
 records = [bp_1, bp_2, bp_3, weight_1, weight_2, weight_3]
 

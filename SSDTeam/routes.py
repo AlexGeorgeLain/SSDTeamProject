@@ -13,9 +13,25 @@ import os
 @app.route("/home")
 def home():
     if current_user.is_authenticated:
-        encrypted_content = Post.query.filter_by(recipient=current_user.email).order_by(Post.date_posted.desc())
+        encrypted_posts = db.session.query(Post) \
+            .where((Post.recipient == current_user.email) | (Post.user_id == current_user.id))\
+            .order_by(Post.date_posted.desc()).all()
 
-        posts = decrypt_post(encrypted_content, current_user.key)
+        posts = []
+
+        for post in encrypted_posts:
+            post_list = [post]
+            if post_list[0].recipient == current_user.email:
+                posts.append(decrypt_post(post_list, current_user.key)[0])
+
+            else:
+                user = User.query.filter_by(email=post.recipient).first()
+                posts.append(decrypt_post(post_list, user.key)[0])
+
+
+        """encrypted_content = Post.query.filter_by(recipient=current_user.email).order_by(Post.date_posted.desc())
+
+        posts = decrypt_post(encrypted_content, current_user.key)"""
 
         return render_template('home.html', posts=posts, title='Home')
     else:
@@ -178,8 +194,22 @@ def download_data(email, record_type):
 @login_required
 def user_account(email):
     user = User.query.filter_by(email=email).first()
+    encrypted_posts = db.session.query(Post) \
+        .where(((Post.user_id == user.id) & (Post.recipient == current_user.email))
+               | ((Post.user_id == current_user.id) & (Post.recipient == user.email))) \
+        .order_by(Post.date_posted.desc()).all()
 
-    return render_template('user_account.html', user=user, title='Account')
+    posts = []
+
+    for post in encrypted_posts:
+        post_list = [post]
+        if post_list[0].recipient == current_user.email:
+            posts.append(decrypt_post(post_list, current_user.key)[0])
+
+        if post_list[0].recipient == user.email:
+            posts.append(decrypt_post(post_list, user.key)[0])
+
+    return render_template('user_account.html', user=user, posts=posts, title='Account')
 
 
 @app.route("/register", methods=['GET', 'POST'])
