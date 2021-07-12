@@ -28,8 +28,8 @@
           <div class="navbar-nav mr-auto">
             <a class="nav-item nav-link" href="{{ url_for('home') }}">Home</a>
             {% if current_user.role == 'Astronaut' %}
-              <a class="nav-item nav-link" href="{{ url_for('blood_pressure_records') }}">Blood Pressure</a>
-              <a class="nav-item nav-link" href="{{ url_for('weight_records') }}">Weight</a>
+              <a class="nav-item nav-link" href="{{ url_for('astronauts_blood_pressure', email=current_user.email) }}">Blood Pressure</a>
+              <a class="nav-item nav-link" href="{{ url_for('astronauts_weight', email=current_user.email) }}">Weight</a>
             {% endif %}
             {% if current_user.role != 'Astronaut'%}
               <a class="nav-item nav-link" href="{{ url_for('astronauts') }}">Astronauts</a>

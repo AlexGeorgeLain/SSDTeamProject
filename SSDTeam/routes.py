@@ -6,7 +6,6 @@ from flask_login import login_user, current_user, logout_user, login_required
 from cryptography.fernet import Fernet
 from ssdteam.encryption import encrypt_medical_record, decrypt_medical_record, encrypt_post, decrypt_post
 from ssdteam.downloads import download_record
-from flask import send_file
 import os
 
 
@@ -82,20 +81,6 @@ def blood_pressure():
     return render_template('blood_pressure.html', title='New Entry', form=form, legend='New Blood Pressure')
 
 
-@app.route("/records/bloodpressure")
-@login_required
-def blood_pressure_records():
-    if current_user.is_authenticated:
-        encrypted_posts = BloodPressure.query.\
-            filter_by(user_id=current_user.id).order_by(BloodPressure.date_posted.desc())
-
-        posts = decrypt_medical_record(encrypted_posts, current_user.key)
-
-        return render_template('single_medical_record.html', posts=posts, title='Blood Pressure Records')
-    else:
-        return redirect(url_for('login'))
-
-
 @app.route("/weight", methods=['GET', 'POST'])
 @login_required
 def weight():
@@ -109,20 +94,6 @@ def weight():
         flash('Weight submitted.', 'success')
         return redirect(url_for('weight'))
     return render_template('weight.html', title='New Entry', form=form, legend='New Weight')
-
-
-@app.route("/records/weight")
-@login_required
-def weight_records():
-    if current_user.is_authenticated:
-        encrypted_posts = Weight.query.\
-            filter_by(user_id=current_user.id).order_by(Weight.date_posted.desc())
-
-        posts = decrypt_medical_record(encrypted_posts, current_user.key)
-
-        return render_template('single_medical_record.html', posts=posts, title='Weight Records')
-    else:
-        return redirect(url_for('login'))
 
 
 @app.route("/astronauts")
