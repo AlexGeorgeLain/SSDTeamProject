@@ -39,7 +39,7 @@
           <div class="media-body">
             <div class="article-metadata">
               <a class="mr-2" href="{{ url_for('user_account', email=post['author']) }}">From: {{ post['author']}}</a>
-              <p>To: {{ post['recipient'] }}</p>
+              <a class="mr-2" href="{{ url_for('user_account', email=post['recipient']) }}">To: {{ post['recipient']}}</a>
               <small class="text-muted">{{ post['date_posted'] }}</small>
             </div>
             <h2><a class="article-title" href="{{ url_for('post', post_id=post['id'])}}">{{ post['title'] }}</a></h2>

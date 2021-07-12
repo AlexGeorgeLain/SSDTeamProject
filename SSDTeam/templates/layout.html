@@ -31,8 +31,11 @@
               <a class="nav-item nav-link" href="{{ url_for('astronauts_blood_pressure', email=current_user.email) }}">Blood Pressure</a>
               <a class="nav-item nav-link" href="{{ url_for('astronauts_weight', email=current_user.email) }}">Weight</a>
             {% endif %}
-            {% if current_user.role != 'Astronaut'%}
+            {% if current_user.role == 'Medic'%}
               <a class="nav-item nav-link" href="{{ url_for('astronauts') }}">Astronauts</a>
+            {% endif %}
+            {% if current_user.role == 'Admin'%}
+              <a class="nav-item nav-link" href="{{ url_for('users') }}">Users</a>
             {% endif %}
           </div>
           <!-- Navbar Right Side -->

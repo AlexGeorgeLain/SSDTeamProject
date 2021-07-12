@@ -268,6 +268,17 @@ def account():
     return render_template('account.html', title='My Account')
 
 
+@app.route("/users")
+@login_required
+def users():
+    if current_user.is_authenticated:
+        posts = User.query.all()
+
+        return render_template('astronauts.html', posts=posts, title='Users')
+    else:
+        return redirect(url_for('login'))
+
+
 @app.route("/post/<int:post_id>")
 @login_required
 def post(post_id):
