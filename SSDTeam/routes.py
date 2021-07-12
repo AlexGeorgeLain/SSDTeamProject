@@ -181,10 +181,6 @@ def user_posts(email):
             if post_list[0].recipient == user.email:
                 posts.append(decrypt_post(post_list, user.key)[0])
 
-        print(encrypted_posts)
-        print(posts)
-
-
         return render_template('home.html', posts=posts, title='Posts')
     else:
         return redirect(url_for('login'))
