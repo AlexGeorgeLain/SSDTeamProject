@@ -1,4 +1,4 @@
-from ssdteam.models import User, Post, BloodPressure, Weight
+from ssdteam.models import User, Post, BloodPressure, Weight, delete_user_from_db
 from flask import render_template, url_for, flash, redirect, request, abort, after_this_request
 from ssdteam.forms import RegistrationForm, LoginForm, PostForm, BloodPressureForm, WeightForm
 from ssdteam import app, db, bcrypt
@@ -234,27 +234,7 @@ def register():
 @login_required
 def delete_user(email):
     if current_user.role == 'Admin':
-        user = User.query.filter_by(email=email).first()
-        posts_received = Post.query.filter_by(recipient=user.email).all()
-        posts = Post.query.filter_by(user_id=user.id).all()
-        blood_pressures = BloodPressure.query.filter_by(user_id=user.id).all()
-        weights = Weight.query.filter_by(user_id=user.id).all()
-
-        for weight in weights:
-            db.session.delete(weight)
-
-        for bp in blood_pressures:
-            db.session.delete(bp)
-
-        for post in posts:
-            db.session.delete(post)
-
-        for post in posts_received:
-            db.session.delete(post)
-
-        db.session.delete(user)
-
-        db.session.commit()
+        delete_user_from_db(email)
         flash('User deleted.', 'success')
         return redirect(url_for('astronauts'))
 

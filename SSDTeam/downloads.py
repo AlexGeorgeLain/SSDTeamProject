@@ -4,7 +4,6 @@ from ssdteam import db
 from flask_login import current_user
 import csv
 from flask import send_file
-import os
 
 def download_record(user_email, record_type):
     path = 'ExportedData.csv'

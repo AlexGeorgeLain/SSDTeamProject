@@ -48,3 +48,28 @@ class Weight(db.Model):
     record = db.Column(db.String(10), nullable=False)
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+def delete_user_from_db(email):
+    user = User.query.filter_by(email=email).first()
+
+    if user:
+        posts_received = Post.query.filter_by(recipient=user.email).all()
+        posts = Post.query.filter_by(user_id=user.id).all()
+        blood_pressures = BloodPressure.query.filter_by(user_id=user.id).all()
+        weights = Weight.query.filter_by(user_id=user.id).all()
+
+        for weight in weights:
+            db.session.delete(weight)
+
+        for bp in blood_pressures:
+            db.session.delete(bp)
+
+        for post in posts:
+            db.session.delete(post)
+
+        for post in posts_received:
+            db.session.delete(post)
+
+        db.session.delete(user)
+
+        db.session.commit()
