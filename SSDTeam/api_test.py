@@ -8,6 +8,9 @@ if __name__ == "__main__":
 
     print('Get Tokens\n ')
 
+    for i in range(20):
+        print(requests.post(BASE + '/api/login', {}).json())
+
 
     admin_token = requests.post(BASE + '/api/login', {'email': 'admin@email.com', 'password': 'password'}).json()['token']
     print(admin_token)

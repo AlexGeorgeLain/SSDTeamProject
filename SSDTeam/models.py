@@ -38,14 +38,14 @@ class Post(db.Model):
 
 class BloodPressure(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    record = db.Column(db.String(10), nullable=False)
+    record = db.Column(db.String, nullable=False)
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
 class Weight(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    record = db.Column(db.String(10), nullable=False)
+    record = db.Column(db.String, nullable=False)
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
