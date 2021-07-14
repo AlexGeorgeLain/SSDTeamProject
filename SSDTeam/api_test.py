@@ -16,10 +16,7 @@ if __name__ == "__main__":
 
     print('\n \n')
 
-    response = requests.get(BASE + '/api/post', {'email': 'admin@email.com', 'token': astro_token})
-    print(response.json())
-
-    response = requests.post(BASE + '/api/post', {'email': 'admin@email.com','token': astro_token, 'title': 'new title', 'content': 'new content 123 abc'})
+    response = requests.delete(BASE + '/api/user', data={'email': 'admin@email.com', 'token': admin_token})
     print(response.json())
 
     '''response = requests.get(BASE + '/api/user', {'email': 'errortest'})

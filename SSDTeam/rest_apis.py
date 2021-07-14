@@ -182,6 +182,11 @@ class UserApi(Resource):
 		args = user_delete_args.parse_args()
 
 		current_user = check_token(args['token'])
+
+		if current_user.email == args['email']:
+			delete_user_from_db(current_user.email)
+			return {'message': 'User Deleted'}
+
 		check_user_role(current_user, 'Admin')
 
 		user = User.query.filter_by(email=args['email']).first()

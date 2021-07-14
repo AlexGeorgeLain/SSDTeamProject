@@ -19,9 +19,6 @@ class User(db.Model, UserMixin):
     blood_pressure = db.relationship('BloodPressure', backref='author', lazy=True)
     weight = db.relationship('Weight', backref='author', lazy=True)
 
-    def __repr__(self):
-        return f"User('{self.first_name}', '{self.last_name}', '{self.email}', '{self.role}', '{self.key}')"
-
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -31,10 +28,9 @@ class Post(db.Model):
     content = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    def __repr__(self):
-        return f"Post('{self.title}', '{self.date_posted}')"
 
 """HEALTH TABLES NEXT"""
+
 
 class BloodPressure(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -48,6 +44,7 @@ class Weight(db.Model):
     record = db.Column(db.String, nullable=False)
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
 
 def delete_user_from_db(email):
     user = User.query.filter_by(email=email).first()
