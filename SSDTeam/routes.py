@@ -129,7 +129,7 @@ def astronauts_blood_pressure(email):
     if current_user.is_authenticated:
         user = User.query.filter_by(email=email).first()
         user_id = user.id
-        encrypted_bp = BloodPressure.query.filter_by(user_id=user_id).all()
+        encrypted_bp = BloodPressure.query.filter_by(user_id=user_id).order_by(BloodPressure.date_posted.desc()).all()
 
         posts = decrypt_medical_record(encrypted_bp, User.query.filter_by(email=email).first().key)
 
@@ -144,7 +144,7 @@ def astronauts_weight(email):
     if current_user.is_authenticated:
         user = User.query.filter_by(email=email).first()
         user_id = user.id
-        encrypted_weight = Weight.query.filter_by(user_id=user_id).all()
+        encrypted_weight = Weight.query.filter_by(user_id=user_id).order_by(Weight.date_posted.desc()).all()
 
         posts = decrypt_medical_record(encrypted_weight, User.query.filter_by(email=email).first().key)
 

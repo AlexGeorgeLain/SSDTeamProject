@@ -3,11 +3,13 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
+from datetime import timedelta
 
 app = Flask(__name__)
 api = Api(app)
 app.config['SECRET_KEY'] = '4576c836be2d7d51f727e01745901904'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)

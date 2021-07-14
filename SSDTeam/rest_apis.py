@@ -44,6 +44,10 @@ login_args = reqparse.RequestParser()
 login_args.add_argument('email', type=str, help='User email required', required=True)
 login_args.add_argument('password', type=str, help='User password required', required=True)
 
+record_args = reqparse.RequestParser()
+record_args.add_argument('record', type=str, help='Record required', required=True)
+record_args.add_argument('token', type=str, help='Auth token required', required=True)
+
 def check_token(token):
 	try:
 		data = jwt.decode(token, app.config['SECRET_KEY'], 'HS256')
@@ -174,3 +178,37 @@ class UserApi(Resource):
 
 
 api.add_resource(UserApi, '/api/user')
+
+
+class RecordApi(Resource):
+	def __init__(self):
+		self.record_types = ['blood_pressure', 'weight']
+
+	def post(self, record_type):
+		args = record_args.parse_args()
+
+		current_user = check_token(args['token'])
+		check_user_role(current_user, 'Astronaut')
+
+		if record_type == 'blood_pressure':
+			encrypted_blood_pressure = encrypt_medical_record(args['record'], current_user.key)
+
+			bp = BloodPressure(record=encrypted_blood_pressure, user_id=current_user.id)
+			db.session.add(bp)
+			db.session.commit()
+
+			return {'message': 'Blood pressure record added.'}
+
+		if record_type == 'weight':
+			encrypted_weight = encrypt_medical_record(args['record'], current_user.key)
+
+			weight = Weight(record=encrypted_weight, user_id=current_user.id)
+			db.session.add(weight)
+			db.session.commit()
+
+			return {'message': 'Weight record added.'}
+
+		return {'message': f'record_type must be in {self.record_types}.'}
+
+
+api.add_resource(RecordApi, '/api/update/<string:record_type>')

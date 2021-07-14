@@ -9,21 +9,32 @@ if __name__ == "__main__":
     print('Get Tokens\n ')
 
 
-    admin_token = requests.post(BASE + '/api/login', {'email': 'admin@email.com', 'password': 'password'})
-    print(admin_token.json())
+    admin_token = requests.post(BASE + '/api/login', {'email': 'admin@email.com', 'password': 'password'}).json()['token']
+    print(admin_token)
 
-    astro_token = requests.post(BASE + '/api/login', {'email': 'astro@email.com', 'password': 'testing'})
-    print(astro_token.json())
+    astro_token = requests.post(BASE + '/api/login', {'email': 'astro@email.com', 'password': 'testing'}).json()['token']
+    print(astro_token)
 
-    input()
 
     print('\nGet requests\n')
 
-    response = requests.get(BASE + '/api/user', {'email': 'all', 'token': admin_token.json()['token']})
+    response = requests.get(BASE + '/api/user', {'email': 'all', 'token': admin_token})
     print(response.json())
 
-    response = requests.get(BASE + '/api/user', {'email': 'all', 'token': astro_token.json()['token']})
+    response = requests.get(BASE + '/api/user', {'email': 'all', 'token': astro_token})
     print(response.json())
+
+    response = requests.post(BASE + '/api/update/blood_pressure', {'record': '120/80', 'token': astro_token})
+    print(response.json())
+
+
+    response = requests.post(BASE + '/api/update/weight', {'record': '80', 'token': astro_token})
+    print(response.json())
+
+    response = requests.post(BASE + '/api/update/bloodpressure', {'record': '120/80', 'token': astro_token})
+    print(response.json())
+
+
 
     '''response = requests.get(BASE + '/api/user', {'email': 'errortest'})
     print(response.json())
