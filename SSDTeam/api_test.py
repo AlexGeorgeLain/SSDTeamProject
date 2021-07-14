@@ -6,13 +6,18 @@ if __name__ == "__main__":
 
     BASE = 'http://127.0.0.1:5000/'
 
-    print('Get requests')
+    print('Get Tokens\n ')
+
 
     admin_token = requests.post(BASE + '/api/login', {'email': 'admin@email.com', 'password': 'password'})
     print(admin_token.json())
 
     astro_token = requests.post(BASE + '/api/login', {'email': 'astro@email.com', 'password': 'testing'})
     print(astro_token.json())
+
+    input()
+
+    print('\nGet requests\n')
 
     response = requests.get(BASE + '/api/user', {'email': 'all', 'token': admin_token.json()['token']})
     print(response.json())
@@ -29,8 +34,7 @@ if __name__ == "__main__":
     response = requests.get(BASE + '/api/user')
     print(response.json())
 
-    print('')
-    print('Put requests')
+    print('\nPut requests\n')
 
     response = requests.put(BASE + '/api/user', {'email': 'new@email.com', 'first_name': 'New', 'last_name': 'Name',
                                                  'role': 'Astronaut', 'password': 'password'})

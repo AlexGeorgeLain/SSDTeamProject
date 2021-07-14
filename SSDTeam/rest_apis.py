@@ -52,12 +52,10 @@ def check_token(token):
 		return current_user
 
 	except (jwt.exceptions.DecodeError, jwt.exceptions.ExpiredSignatureError):
-		return False
+		return abort(403, message='Invalid token. Please login.')
 
 
 def check_user_role(current_user, role):
-	if not current_user:
-		abort(403, message='Invalid token. Please login.')
 
 	if current_user.role != role:
 		abort(403, message='Access denied. Invalid user role.')
@@ -70,7 +68,7 @@ class LoginApi(Resource):
 
 		if user and bcrypt.check_password_hash(user.password, args['password']):
 			token = jwt.encode({'email': user.email,
-								'exp': datetime.utcnow() + timedelta(minutes=5)},
+								'exp': datetime.utcnow() + timedelta(seconds=5)},
 								app.config['SECRET_KEY'], algorithm='HS256')
 
 			return {'token': token}
