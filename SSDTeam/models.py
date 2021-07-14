@@ -9,12 +9,12 @@ def load_user(user_id):
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(120), nullable=False)
-    last_name = db.Column(db.String(120), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(60), nullable=False)
-    role = db.Column(db.String(60), nullable=False)
-    key = db.Column(db.String(), nullable=False)
+    first_name = db.Column(db.String, nullable=False)
+    last_name = db.Column(db.String, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
+    password = db.Column(db.String, nullable=False)
+    role = db.Column(db.String, nullable=False)
+    key = db.Column(db.String, nullable=False)
     posts = db.relationship('Post', backref='author', lazy=True)
     blood_pressure = db.relationship('BloodPressure', backref='author', lazy=True)
     weight = db.relationship('Weight', backref='author', lazy=True)
@@ -25,8 +25,8 @@ class User(db.Model, UserMixin):
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    recipient = db.Column(db.String(120), nullable=False)
+    title = db.Column(db.String, nullable=False)
+    recipient = db.Column(db.String, nullable=False)
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     content = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

@@ -28,11 +28,6 @@ def home():
                 user = User.query.filter_by(email=post.recipient).first()
                 posts.append(decrypt_post(post_list, user.key)[0])
 
-
-        """encrypted_content = Post.query.filter_by(recipient=current_user.email).order_by(Post.date_posted.desc())
-
-        posts = decrypt_post(encrypted_content, current_user.key)"""
-
         return render_template('home.html', posts=posts, title='Home')
     else:
         return redirect(url_for('login'))
@@ -251,7 +246,7 @@ def account():
 @app.route("/users")
 @login_required
 def users():
-    if current_user.is_authenticated:
+    if current_user.role == 'Admin':
         posts = User.query.all()
 
         return render_template('astronauts.html', posts=posts, title='Users')
