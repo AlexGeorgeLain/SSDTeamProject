@@ -3,11 +3,14 @@ from ssdteam.models import User, Post, BloodPressure, Weight, delete_user_from_d
 from ssdteam.encryption import encrypt_post, encrypt_medical_record, decrypt_medical_record, decrypt_post
 from flask_restful import Resource, reqparse, abort, fields, marshal_with
 from cryptography.fernet import Fernet
+import jwt
+from datetime import datetime, timedelta
 
 roles = ['Admin', 'Astronaut', 'Medic']
 
 user_get_args = reqparse.RequestParser()
 user_get_args.add_argument('email', type=str, help='User email required', required=True)
+user_get_args.add_argument('token', type=str, help='Auth token required', required=True)
 
 user_put_args = reqparse.RequestParser()
 user_put_args.add_argument('email', type=str, help='User email required', required=True)
@@ -15,6 +18,7 @@ user_put_args.add_argument('first_name', type=str, help='User first name require
 user_put_args.add_argument('last_name', type=str, help='User last name required', required=True)
 user_put_args.add_argument('role', type=str, help=f'User role required. Must be in {roles}', required=True)
 user_put_args.add_argument('password', type=str, help='User password required', required=True)
+user_put_args.add_argument('token', type=str, help='Auth token required', required=True)
 
 user_patch_args = reqparse.RequestParser()
 user_patch_args.add_argument('email', type=str, help='User email required', required=True)
@@ -23,9 +27,11 @@ user_patch_args.add_argument('first_name', type=str, help='User first name')
 user_patch_args.add_argument('last_name', type=str, help='User last name')
 user_patch_args.add_argument('role', type=str, help=f'User role must be in {roles}')
 user_patch_args.add_argument('password', type=str, help='User password')
+user_patch_args.add_argument('token', type=str, help='Auth token required', required=True)
 
 user_delete_args = reqparse.RequestParser()
 user_delete_args.add_argument('email', type=str, help='User email required', required=True)
+user_delete_args.add_argument('token', type=str, help='Auth token required', required=True)
 
 user_fields = {
     'email': fields.String,
@@ -33,6 +39,46 @@ user_fields = {
     'last_name': fields.String,
 	'role': fields.String
 }
+
+login_args = reqparse.RequestParser()
+login_args.add_argument('email', type=str, help='User email required', required=True)
+login_args.add_argument('password', type=str, help='User password required', required=True)
+
+def check_token(token):
+	try:
+		data = jwt.decode(token, app.config['SECRET_KEY'], 'HS256')
+
+		current_user = User.query.filter_by(email=data['email']).first()
+		return current_user
+
+	except (jwt.exceptions.DecodeError, jwt.exceptions.ExpiredSignatureError):
+		return False
+
+
+def check_user_role(current_user, role):
+	if not current_user:
+		abort(403, message='Invalid token. Please login.')
+
+	if current_user.role != role:
+		abort(403, message='Access denied. Invalid user role.')
+
+
+class LoginApi(Resource):
+	def post(self):
+		args = login_args.parse_args()
+		user = User.query.filter_by(email=args['email']).first()
+
+		if user and bcrypt.check_password_hash(user.password, args['password']):
+			token = jwt.encode({'email': user.email,
+								'exp': datetime.utcnow() + timedelta(minutes=5)},
+								app.config['SECRET_KEY'], algorithm='HS256')
+
+			return {'token': token}
+
+		return {'message': 'Login error. Check username and password.'}
+
+
+api.add_resource(LoginApi, '/api/login')
 
 
 class UserApi(Resource):
@@ -42,6 +88,10 @@ class UserApi(Resource):
 	@marshal_with(user_fields)
 	def get(self):
 		args = user_get_args.parse_args()
+
+		current_user = check_token(args['token'])
+		check_user_role(current_user, 'Admin')
+
 		if args['email'] == 'all':
 			users = User.query.all()
 			return users
@@ -55,7 +105,12 @@ class UserApi(Resource):
 	@marshal_with(user_fields)
 	def put(self):
 		args = user_put_args.parse_args()
+
+		current_user = check_token(args['token'])
+		check_user_role(current_user, 'Admin')
+
 		user = User.query.filter_by(email=args['email']).first()
+
 		if user:
 			abort(409, message=f"User with the email {args['email']} already exists")
 
@@ -74,6 +129,10 @@ class UserApi(Resource):
 	@marshal_with(user_fields)
 	def patch(self):
 		args = user_patch_args.parse_args()
+
+		current_user = check_token(args['token'])
+		check_user_role(current_user, 'Admin')
+
 		user = User.query.filter_by(email=args['email']).first()
 
 		if not user:
@@ -103,6 +162,10 @@ class UserApi(Resource):
 
 	def delete(self):
 		args = user_delete_args.parse_args()
+
+		current_user = check_token(args['token'])
+		check_user_role(current_user, 'Admin')
+
 		user = User.query.filter_by(email=args['email']).first()
 
 		if not user:
@@ -112,4 +175,4 @@ class UserApi(Resource):
 		return {'message': 'User Deleted'}
 
 
-api.add_resource(UserApi, "/api/user")
+api.add_resource(UserApi, '/api/user')

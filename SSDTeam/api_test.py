@@ -8,10 +8,19 @@ if __name__ == "__main__":
 
     print('Get requests')
 
-    response = requests.get(BASE + '/api/user', {'email': 'all'})
+    admin_token = requests.post(BASE + '/api/login', {'email': 'admin@email.com', 'password': 'password'})
+    print(admin_token.json())
+
+    astro_token = requests.post(BASE + '/api/login', {'email': 'astro@email.com', 'password': 'testing'})
+    print(astro_token.json())
+
+    response = requests.get(BASE + '/api/user', {'email': 'all', 'token': admin_token.json()['token']})
     print(response.json())
 
-    response = requests.get(BASE + '/api/user', {'email': 'errortest'})
+    response = requests.get(BASE + '/api/user', {'email': 'all', 'token': astro_token.json()['token']})
+    print(response.json())
+
+    '''response = requests.get(BASE + '/api/user', {'email': 'errortest'})
     print(response.json())
 
     response = requests.get(BASE + '/api/user', {'email': 'admin@email.com'})
@@ -64,3 +73,4 @@ if __name__ == "__main__":
 
     response = requests.get(BASE + '/api/user', {'email': 'all'})
     print(response.json())
+'''
