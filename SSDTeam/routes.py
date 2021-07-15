@@ -144,8 +144,14 @@ def blood_pressure():
         flash('Blood pressure submitted.', 'success')
         return redirect(url_for('blood_pressure'))
 
-    return render_template('blood_pressure.html', title='New Entry',
-                           form=form, legend='New Blood Pressure')
+    encrypted_bp = BloodPressure.query. \
+        filter_by(user_id=current_user.id).order_by(BloodPressure.date_posted.desc()).all()
+
+    posts = decrypt_medical_record(encrypted_bp,
+                                   current_user.key)
+
+    return render_template('blood_pressure.html', title='Blood Pressure',
+                           form=form, posts=posts,  legend='New Blood Pressure')
 
 
 @app.route("/weight", methods=['GET', 'POST'])
@@ -167,7 +173,13 @@ def weight():
         flash('Weight submitted.', 'success')
         return redirect(url_for('weight'))
 
-    return render_template('weight.html', title='New Entry', form=form, legend='New Weight')
+    encrypted_weight = Weight.query.filter_by(user_id=current_user.id). \
+        order_by(Weight.date_posted.desc()).all()
+
+    posts = decrypt_medical_record(encrypted_weight,
+                                   current_user.key)
+
+    return render_template('weight.html', title='Weight', posts=posts, form=form, legend='New Weight')
 
 
 @app.route("/astronauts")
@@ -198,7 +210,9 @@ def astronauts_blood_pressure(email):
         email -- email of the astronaut whose records are being viewed.
     """
 
-    if current_user.role in ['Admin', 'Medic'] or current_user.email == email:
+    if current_user.role in ['Admin', 'Medic'] \
+            or current_user.email == email:
+
         user = User.query.filter_by(email=email).first()
         user_id = user.id
         encrypted_bp = BloodPressure.query.\
