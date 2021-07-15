@@ -35,9 +35,9 @@ user_delete_args.add_argument('email', type=str, help='User email required', req
 user_delete_args.add_argument('token', type=str, help='Auth token required', required=True)
 
 user_fields = {
-    'email': fields.String,
-    'first_name': fields.String,
-    'last_name': fields.String,
+	'email': fields.String,
+	'first_name': fields.String,
+	'last_name': fields.String,
 	'role': fields.String
 }
 

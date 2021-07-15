@@ -19,11 +19,11 @@ db = SQLAlchemy(app)
 #db.init_app(app)
 #migrate = Migrate(app, db)
 
-limiter = Limiter(
+'''limiter = Limiter(
     app,
     key_func=get_remote_address,
     default_limits=["200 per day", "50 per hour"]
-)
+)'''
 
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
