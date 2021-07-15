@@ -1,18 +1,28 @@
+"""Module containing forms for website.
+
+Classes:
+    RegistrationForm -- User registration form.
+    LoginForm -- User login form.
+    PostForm -- User post form.
+    BloodPressureForm -- Astronaut form for adding a blood pressure record.
+    Weight -- Astronaut form for adding a weight record.
+"""
+
 from flask_wtf import FlaskForm
-from flask_login import current_user
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from ssdteam.models import User
-from flask_wtf.file import FileField, FileAllowed
 
 
 class RegistrationForm(FlaskForm):
+    """User registration form."""
+
     first_name = StringField('First Name', validators=[DataRequired(), Length(min=2, max=20)])
     last_name = StringField('Last Name', validators=[DataRequired(), Length(min=2, max=20)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
-    role = StringField("Role: 'Admin', 'Astronaut', or 'Medic'", validators=[DataRequired()] )
+    role = StringField("Role: 'Admin', 'Astronaut', or 'Medic'", validators=[DataRequired()])
     submit = SubmitField('Register User')
 
     def validate_email(self, email):
@@ -26,12 +36,16 @@ class RegistrationForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
+    """User login form."""
+
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
 
 class PostForm(FlaskForm):
+    """User post form."""
+
     title = StringField('Title', validators=[DataRequired()])
     recipient = StringField('Recipient', validators=[DataRequired(), Email()])
     content = TextAreaField('Content', validators=[DataRequired()])
@@ -44,6 +58,8 @@ class PostForm(FlaskForm):
 
 
 class BloodPressureForm(FlaskForm):
+    """Astronaut form for adding a blood pressure record."""
+
     blood_pressure = StringField('Blood Pressure', validators=[DataRequired(), Length(min=5, max=7)])
     submit = SubmitField('Submit')
 
@@ -53,6 +69,8 @@ class BloodPressureForm(FlaskForm):
 
 
 class WeightForm(FlaskForm):
+    """Astronaut form for adding a weight record."""
+
     weight = StringField('Weight', validators=[DataRequired(), Length(min=2, max=5)])
     submit = SubmitField('Submit')
 

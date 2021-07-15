@@ -1,11 +1,24 @@
+"""Module containing functions for downloading data
+
+Functions:
+    download_record -- downloads specified records of a user.
+"""
+
+import csv
+from flask_login import current_user
+from flask import send_file
 from ssdteam.encryption import decrypt_post, decrypt_medical_record
 from ssdteam.models import User, Post, Weight, BloodPressure
 from ssdteam import db
-from flask_login import current_user
-import csv
-from flask import send_file
+
 
 def download_record(user_email, record_type):
+    """Downloads data of the given user and record.
+
+    Keyword arguments:
+        user_email -- the email of the user whose data is to be downloaded.
+        record_type - the type of record to be downloaded.
+    """
     path = 'ExportedData.csv'
     user = User.query.filter_by(email=user_email).first()
 
@@ -26,8 +39,13 @@ def download_record(user_email, record_type):
                 posts.append(decrypt_post(post_list, user.key)[0])
 
         with open(path, 'w') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=['id', 'author', 'recipient', 'date_posted', 'title', 'content'])
+            writer = csv.DictWriter(
+                csvfile,
+                fieldnames=['id', 'author', 'recipient', 'date_posted', 'title', 'content']
+            )
+
             writer.writeheader()
+
             for post in posts:
                 writer.writerow(post)
 
@@ -56,4 +74,3 @@ def download_record(user_email, record_type):
                 writer.writerow(post)
 
     return send_file(path, as_attachment=True)
-
