@@ -60,7 +60,7 @@ class PostForm(FlaskForm):
 class BloodPressureForm(FlaskForm):
     """Astronaut form for adding a blood pressure record."""
 
-    blood_pressure = StringField('Blood Pressure', validators=[DataRequired(), Length(min=5, max=7)])
+    blood_pressure = StringField('Blood Pressure', validators=[DataRequired(), Length(min=1, max=10)])
     submit = SubmitField('Submit')
 
     def validate_bp(self, blood_pressure):
@@ -71,7 +71,7 @@ class BloodPressureForm(FlaskForm):
 class WeightForm(FlaskForm):
     """Astronaut form for adding a weight record."""
 
-    weight = StringField('Weight', validators=[DataRequired(), Length(min=2, max=5)])
+    weight = StringField('Weight', validators=[DataRequired(), Length(min=1, max=10)])
     submit = SubmitField('Submit')
 
     def validate_weight(self, weight):

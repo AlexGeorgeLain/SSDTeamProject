@@ -13,7 +13,7 @@ api = Api(app)
 app.config['SECRET_KEY'] = '4576c836be2d7d51f727e01745901904'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@localhost:5432/ssdproject'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 
 db = SQLAlchemy(app)
 #db.init_app(app)
@@ -31,4 +31,4 @@ login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
 
 from ssdteam import routes
-from ssdteam import api
+from ssdteam import rest_apis

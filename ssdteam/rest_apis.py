@@ -133,7 +133,7 @@ class UserApi(Resource):
 			abort(409, message=f"User with the email {args['email']} already exists")
 
 		if args['role'] not in self.user_roles:
-			abort(403, message=f'User role must in {self.user_roles}.')
+			abort(403, message=f'User role must be in {self.user_roles}.')
 
 		hashed_pw = bcrypt.generate_password_hash(args['password']).decode('utf-8')
 		new_user = User(email=args['email'], first_name=args['first_name'], last_name=args['last_name'],
@@ -341,3 +341,4 @@ class PostApi(Resource):
 
 
 api.add_resource(PostApi, '/api/post')
+

@@ -14,10 +14,8 @@ if __name__ == "__main__":
     astro_token = requests.post(BASE + '/api/login', {'email': 'astro@email.com', 'password': 'testing'}).json()['token']
     print(astro_token)
 
-    print('\n \n')
-
-    response = requests.delete(BASE + '/api/user', data={'email': 'admin@email.com', 'token': admin_token})
-    print(response.json())
+    '''response = requests.delete(BASE + '/api/user', data={'email': 'admin@email.com', 'token': admin_token})
+    print(response.json())'''
 
     '''response = requests.get(BASE + '/api/user', {'email': 'errortest'})
     print(response.json())

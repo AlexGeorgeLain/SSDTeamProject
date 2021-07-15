@@ -224,7 +224,7 @@ def astronauts_blood_pressure(email):
         return render_template('single_medical_record.html', posts=posts,
                                user=user, title='Blood Pressure')
 
-    return redirect(url_for('login'))
+    return abort(403)
 
 
 @app.route("/accounts/<string:email>/weight")
@@ -306,6 +306,7 @@ def download_data(email, record_type):
 
     if current_user.email == email or \
             current_user.role in ['Admin', 'Medic']:
+
         return download_record(email, record_type)
 
     return abort(403)
