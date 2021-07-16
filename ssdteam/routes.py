@@ -344,14 +344,16 @@ def download_data(email, record_type):
         record_type -- record type to be downloaded.
     """
 
+    # this runs after the initial request is complete.
     @after_this_request
     def delete_file(response):
+        # deletes the temporary csv file.
         os.remove('ExportedData.csv')
         return response
 
     if current_user.email == email or \
             current_user.role in ['Admin', 'Medic']:
-
+        # downloads the requested records.
         return download_record(email, record_type)
 
     return abort(403)   # access denied error if not the data owner, or incorrect role.
