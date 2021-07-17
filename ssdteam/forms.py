@@ -96,7 +96,7 @@ class BloodPressureForm(FlaskForm):
 class WeightForm(FlaskForm):
     """Astronaut form for adding a weight record."""
 
-    weight = StringField('Weight', validators=[DataRequired(), Length(min=1, max=10)])
+    weight = StringField('Weight', validators=[DataRequired(), Length(min=1, max=12)])
     submit = SubmitField('Submit')
 
     def validate_weight(self, weight):
