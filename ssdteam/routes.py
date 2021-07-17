@@ -147,7 +147,7 @@ def blood_pressure():
     and saves it to the database.
     """
     if current_user.role != 'Astronaut':
-        return abort(403) # access denied if current user is not an astronaut.
+        return abort(403)   # access denied if current user is not an astronaut.
 
     form = BloodPressureForm()  # BloodPressure form to be passed into the template.
     if form.validate_on_submit():
@@ -370,23 +370,32 @@ def user_account(email):
         email -- email address of the user account to be viewed
     """
 
+    # pulls the user data from the database associated with the email passed in.
     user = User.query.filter_by(email=email).first()
-    encrypted_posts = db.session.query(Post) \
-        .where(((Post.user_id == user.id) & (Post.recipient == current_user.email))
-               | ((Post.user_id == current_user.id) & (Post.recipient == user.email))) \
-        .order_by(Post.date_posted.desc()).all()
+    if user:
+        # finds all posts between the current user and the user passed in.
+        encrypted_posts = db.session.query(Post) \
+            .where(((Post.user_id == user.id) & (Post.recipient == current_user.email))
+                   | ((Post.user_id == current_user.id) & (Post.recipient == user.email))) \
+            .order_by(Post.date_posted.desc()).all()
 
-    posts = []
+        posts = []  # empty list for decrypted posts to be appended to.
 
-    for encrypted_post in encrypted_posts:
-        post_list = [encrypted_post]
-        if post_list[0].recipient == current_user.email:
-            posts.append(decrypt_post(post_list, current_user.key)[0])
+        # posts are decrypted with the appropriate key based on the recipient and appended to the posts list.
+        for encrypted_post in encrypted_posts:
+            post_list = [encrypted_post]    # decrypt_post() takes a list as an argument
 
-        if post_list[0].recipient == user.email:
-            posts.append(decrypt_post(post_list, user.key)[0])
+            # posts are decrypted with the appropriate key based on the recipient and appended to the posts list.
+            if post_list[0].recipient == current_user.email:
+                posts.append(decrypt_post(post_list, current_user.key)[0])
 
-    return render_template('user_account.html', user=user, posts=posts, title='Account')
+            if post_list[0].recipient == user.email:
+                posts.append(decrypt_post(post_list, user.key)[0])
+
+        # passes posts, user, and title info into the html.
+        return render_template('user_account.html', user=user, posts=posts, title='Account')
+
+    return abort(404)   # not found error if user not found.
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -398,23 +407,31 @@ def register():
     information is saved into the database.
     """
     if current_user.role != 'Admin':
-        abort(403)
+        abort(403)  # access denied error if current user is not an admin.
 
-    form = RegistrationForm()
+    form = RegistrationForm()   # RegistrationForm passed with validation.
     if form.validate_on_submit():
+        # hashes the input password using bcrypt and decodes
+        # it to a utf-8 string to be passed into the database.
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+
+        # new User object instantiated using the form data,
+        # hashed password, and a newly generated encryption key.
         user = User(first_name=form.first_name.data,
                     last_name=form.last_name.data,
                     email=form.email.data,
                     password=hashed_password,
                     key=Fernet.generate_key().decode('utf-8'))
 
+        # adds the new user to the database and commits the change.
         db.session.add(user)
         db.session.commit()
 
+        # flashes account created message and redirects to and empty user registration form.
         flash(f'Account created for {form.first_name.data} {form.last_name.data}.', 'success')
         return redirect(url_for('register'))
 
+    # loads page using the title and form information.
     return render_template('register.html', title='Register', form=form)
 
 
@@ -429,12 +446,14 @@ def delete_user(email):
     """
 
     if current_user.role == 'Admin':
+        # runs delete user function to remove all information associated
+        # data with the passed in email address.
         delete_user_from_db(email)
         flash('User deleted.', 'success')
 
-        return redirect(url_for('users'))
+        return redirect(url_for('users'))   # redirects to list of all remaining users.
 
-    return abort(403)
+    return abort(403)   # access denied error if current user has an incorrect role.
 
 
 @app.route("/account", methods=['GET', 'POST'])
@@ -455,46 +474,115 @@ def users():
     """
 
     if current_user.role == 'Admin':
+        # finds all users currently listed in the database.
         all_users = User.query.all()
-
+        # renders list of all users.
         return render_template('users_list.html', posts=all_users, title='Users')
 
-    return abort(403)
+    return abort(403)   # access denied error if current user has an incorrect role.
 
 
 @app.route("/post/<int:post_id>")
 @login_required
 def post(post_id):
-    post = Post.query.get_or_404(post_id)
-    return render_template('post.html', title=post.title, post=post)
+    """
+    Loads page displaying a single post.
+
+    Keyword args:
+        post_id -- id of the post to be displayed
+    """
+
+    # pulls post to be viewed from the database.
+    # not found error is no post with that id found.
+    encrypted_post = Post.query.get_or_404(post_id)
+    # recipient user associated with the post.
+    user = User.query.filter_by(email=encrypted_post.recipient).first()
+
+    if current_user.email == encrypted_post.recipient \
+            or current_user.email == encrypted_post.author.email \
+            or current_user.role == 'Admin':
+
+        post_list = [encrypted_post]  # decrypt_post() takes a list as an argument.
+
+        # post is decrypted with the appropriate key based on the recipient.
+        decrypted_post = decrypt_post(post_list, user.key)[0]
+
+        return render_template('post.html', title=encrypted_post.title, post=decrypted_post)
+
+    return abort(403)  # access denied error.
 
 
 @app.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
 @login_required
 def update_post(post_id):
-    post = Post.query.get_or_404(post_id)
-    if post.author != current_user:
-        abort(403)
-    form = PostForm()
+    """
+    Loads new post form with fields prefilled with data from the database.
+
+    Keyword args:
+        post_id -- id of the post to be updated.
+    """
+
+    # finds post in the database.
+    # not found error if no post with the passed in id is in the database.
+    encrypted_post = Post.query.get_or_404(post_id)
+
+    if encrypted_post.author != current_user:
+        abort(403)  # access denied error if current user is not the post author.
+
+    # post recipient info from database.
+    user = User.query.filter_by(email=encrypted_post.recipient).first()
+
+    form = PostForm()   # form used for validation.
+
+    # decrypts post.
+    decrypted_post = decrypt_post([encrypted_post], user.key)[0]
+
     if form.validate_on_submit():
-        post.title = form.title.data
-        post.content = form. content.data
+        # updates new recipient and title in database.
+        encrypted_post.recipient = form.recipient.data
+        encrypted_post.title = form.title.data
+
+        # encrypts new post content and adds to database
+        encrypted_content = encrypt_post(form.content.data, form.recipient.data)
+        encrypted_post.content = encrypted_content
+
+        # commits changes to database.
         db.session.commit()
+
+        # redirects to post page and flashes success message.
         flash('Post updated.', 'success')
-        return redirect(url_for('post', post_id=post.id))
+        return redirect(url_for('post', post_id=encrypted_post.id))
+
     elif request.method == 'GET':
-        form.title.data = post.title
-        form.content.data = post.content
+        # prefills form with the decrypted data from the database.
+        form.recipient.data = encrypted_post.recipient
+        form.title.data = encrypted_post.title
+        form.content.data = decrypted_post['content']
+
     return render_template('create_post.html', title='Update Post', form=form, legend='Update Post')
 
 
 @app.route("/post/<int:post_id>/delete", methods=['POST'])
 @login_required
 def delete_post(post_id):
-    post = Post.query.get_or_404(post_id)
-    if post.author != current_user:
-        abort(403)
-    db.session.delete(post)
+    """
+    Deletes as post from the database if the current user is the author.
+
+    keyword args:
+        post_id -- id of the post to be deleted.
+    """
+
+    # finds post in the database.
+    # not found error if no post with the passed in id is in the database.
+    post_to_delete = Post.query.get_or_404(post_id)
+
+    if post_to_delete.author != current_user:
+        abort(403)  # access denied error if current user is not the post author.
+
+    # deletes the post from the database and commits the change to the database.
+    db.session.delete(post_to_delete)
     db.session.commit()
+
+    # redirects to homepage and flashes success message.
     flash('Post deleted.', 'success')
     return redirect(url_for('home'))

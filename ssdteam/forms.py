@@ -26,12 +26,28 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Register User')
 
     def validate_email(self, email):
+        """
+        Checks if there is a user with the entered email already in the database.
+
+        Keyword args:
+            email -- email entered into the form to be checked.
+        """
+        # searches for user in the database.
         user = User.query.filter_by(email=email.data).first()
+
         if user:
+            # sends error message if user is found in the database.
             raise ValidationError('Email already in use')
 
     def validate_role(self, role):
+        """
+        Checks if entered role is valid.
+
+        Keyword args:
+            role -- role entered into the form to be checked.
+        """
         if role.data not in ['Admin', 'Astronaut', 'Medic']:
+            # sends error message if entered role isn't valid.
             raise ValidationError("Role must be either 'Admin', 'Astronaut', or 'Medic'")
 
 
@@ -52,8 +68,17 @@ class PostForm(FlaskForm):
     submit = SubmitField('Post')
 
     def validate_recipient(self, recipient):
+        """
+        Checks if the entered recipient is in the database.
+
+        Keyword args:
+            recipient -- recipient email to be checked.
+        """
+        # finds user with the entered email in the database.
         user = User.query.filter_by(email=recipient.data).first()
+
         if not user:
+            # sends error message if user is not found.
             raise ValidationError('Recipient email not registered')
 
 
