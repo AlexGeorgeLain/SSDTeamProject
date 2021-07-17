@@ -12,7 +12,7 @@ Functions:
 
 from datetime import datetime
 from flask_login import UserMixin
-from ssdteam import db, login_manager
+from healthapp import db, login_manager
 
 
 @login_manager.user_loader

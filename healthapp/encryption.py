@@ -8,7 +8,7 @@ Functions:
 """
 
 from cryptography.fernet import Fernet
-from ssdteam.models import User
+from healthapp.models import User
 
 
 def encrypt_medical_record(new_entry, user_key):

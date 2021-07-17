@@ -1,5 +1,5 @@
 import requests
-from ssdteam.rebuild_db import rebuild_db
+from healthapp.rebuild_db import rebuild_db
 
 if __name__ == "__main__":
     rebuild_db()

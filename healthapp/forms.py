@@ -11,7 +11,7 @@ Classes:
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
-from ssdteam.models import User
+from healthapp.models import User
 
 
 class RegistrationForm(FlaskForm):

@@ -25,16 +25,16 @@ import os
 from flask import render_template, url_for, flash, redirect, request, abort, after_this_request
 from flask_login import login_user, current_user, logout_user, login_required
 from cryptography.fernet import Fernet
-from ssdteam import app, db, bcrypt
-from ssdteam.models import User, Post, BloodPressure, Weight, delete_user_from_db
+from healthapp import app, db, bcrypt
+from healthapp.models import User, Post, BloodPressure, Weight, delete_user_from_db
 
-from ssdteam.forms import RegistrationForm, LoginForm, \
+from healthapp.forms import RegistrationForm, LoginForm, \
     PostForm, BloodPressureForm, WeightForm
 
-from ssdteam.encryption import encrypt_medical_record,\
+from healthapp.encryption import encrypt_medical_record,\
     decrypt_medical_record, encrypt_post, decrypt_post
 
-from ssdteam.downloads import download_record
+from healthapp.downloads import download_record
 
 
 @app.route("/")

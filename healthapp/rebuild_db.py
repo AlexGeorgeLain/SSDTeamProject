@@ -1,6 +1,6 @@
-from ssdteam import db, bcrypt
-from ssdteam.models import User, Post, BloodPressure, Weight
-from ssdteam.encryption import encrypt_post, encrypt_medical_record
+from healthapp import db, bcrypt
+from healthapp.models import User, Post, BloodPressure, Weight
+from healthapp.encryption import encrypt_post, encrypt_medical_record
 from cryptography.fernet import Fernet
 
 def rebuild_db():

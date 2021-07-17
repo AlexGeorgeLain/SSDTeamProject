@@ -7,9 +7,9 @@ Functions:
 import csv
 from flask_login import current_user
 from flask import send_file
-from ssdteam.encryption import decrypt_post, decrypt_medical_record
-from ssdteam.models import User, Post, Weight, BloodPressure
-from ssdteam import db
+from healthapp.encryption import decrypt_post, decrypt_medical_record
+from healthapp.models import User, Post, Weight, BloodPressure
+from healthapp import db
 
 
 def download_record(user_email, record_type):
