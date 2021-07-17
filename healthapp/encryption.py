@@ -14,7 +14,7 @@ from healthapp.models import User
 def encrypt_medical_record(new_entry, user_key):
     """Encrypts a record using the given key.
 
-    Keyword arguments:
+    Args:
         new_entry -- the new record entry that is to be encrypted.
         user_key -- the key of the user that the record is associated with.
     """
@@ -31,7 +31,7 @@ def encrypt_medical_record(new_entry, user_key):
 def decrypt_medical_record(encrypted_posts, key):
     """Decrypts records using the given key.
 
-    Keyword arguments:
+    Args:
          encrypted_posts -- posts to be decrypted.
          key -- encryption key associated with the records.
     """
@@ -56,7 +56,7 @@ def decrypt_medical_record(encrypted_posts, key):
 def encrypt_post(post, recipient):
     """Encrypts a user post using the recipient's key.
 
-    Keyword arguments:
+    Args:
         post -- The post to be encrypted.
         recipient -- the recipient of the post
     """
@@ -74,7 +74,7 @@ def encrypt_post(post, recipient):
 def decrypt_post(encrypted_posts, key):
     """Decrypts posts using the given key.
 
-    Keyword arguments:
+    Args:
           encrypted_posts -- the posts to be decrypted.
           key -- recipient key associated with the encrypted posts.
     """

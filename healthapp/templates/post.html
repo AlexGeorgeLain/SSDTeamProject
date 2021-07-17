@@ -3,7 +3,8 @@
   <article class="media content-section">
     <div class="media-body">
       <div class="article-metadata">
-        <a class="mr-2" href="{{ url_for('user_posts', email=post['author']) }}">{{ post['author'] }}</a>
+        <a class="mr-2" href="{{ url_for('user_account', email=post['author']) }}">From: {{ post['author']}}</a>
+        <a class="mr-2" href="{{ url_for('user_account', email=post['recipient']) }}">To: {{ post['recipient']}}</a>
         <small class="text-muted">{{ post['date_posted']}}</small>
         {% if post['author'] == current_user.email %}
           <div>

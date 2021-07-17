@@ -237,7 +237,7 @@ def astronauts_blood_pressure(email, retunr=None):
     Loads page displaying the blood pressure records of a given astronaut,
     proving that the current user has the correct role, or is the astronaut.
 
-    Keyword args:
+    Args:
         email -- email of the astronaut whose records are being viewed.
     """
 
@@ -269,7 +269,7 @@ def astronauts_weight(email):
     Loads page displaying the weight records of a given astronaut,
     proving that the current user has the correct role.
 
-    Keyword args:
+    Args:
         email -- email of the astronaut whose records are being viewed.
     """
 
@@ -301,7 +301,7 @@ def user_posts(email):
     Loads page displaying all posts between a given user
     and the current user.
 
-    Keyword args:
+    Args:
         email -- email of the user whose posts are being viewed.
     """
 
@@ -339,7 +339,7 @@ def download_data(email, record_type):
     Downloads the record being viewed, provided current user is the record owner,
     or the current user has the appropriate role.
 
-    Keyword args:
+    Args:
         email -- email of the owner of the records.
         record_type -- record type to be downloaded.
     """
@@ -366,7 +366,7 @@ def user_account(email):
     Loads the specified user account info, along with the post between
     them and the current user.
 
-    Keyword args:
+    Args:
         email -- email address of the user account to be viewed
     """
 
@@ -441,7 +441,7 @@ def delete_user(email):
     """
     Deletes a user from the database, along with their associated data.
 
-    Keyword args:
+    Args:
         email -- email of the user account to be deleted
     """
 
@@ -488,7 +488,7 @@ def post(post_id):
     """
     Loads page displaying a single post.
 
-    Keyword args:
+    Args:
         post_id -- id of the post to be displayed
     """
 
@@ -518,7 +518,7 @@ def update_post(post_id):
     """
     Loads new post form with fields prefilled with data from the database.
 
-    Keyword args:
+    Args:
         post_id -- id of the post to be updated.
     """
 
@@ -568,7 +568,7 @@ def delete_post(post_id):
     """
     Deletes as post from the database if the current user is the author.
 
-    keyword args:
+    Args:
         post_id -- id of the post to be deleted.
     """
 

@@ -19,7 +19,7 @@ from healthapp import db, login_manager
 def load_user(user_id):
     """Loads user as current_user.
 
-    Keyword args:
+    Args:
         user_id -- id of logged in user.
     """
 
@@ -85,7 +85,7 @@ class Weight(db.Model):
 def delete_user_from_db(email):
     """Deletes user and all associated data, if the user exists.
 
-    Keyword args:
+    Args:
         email -- email of the user to be deleted.
     """
 

@@ -29,7 +29,7 @@ class RegistrationForm(FlaskForm):
         """
         Checks if there is a user with the entered email already in the database.
 
-        Keyword args:
+        Args:
             email -- email entered into the form to be checked.
         """
         # searches for user in the database.
@@ -43,7 +43,7 @@ class RegistrationForm(FlaskForm):
         """
         Checks if entered role is valid.
 
-        Keyword args:
+        Args:
             role -- role entered into the form to be checked.
         """
         if role.data not in ['Admin', 'Astronaut', 'Medic']:
@@ -71,7 +71,7 @@ class PostForm(FlaskForm):
         """
         Checks if the entered recipient is in the database.
 
-        Keyword args:
+        Args:
             recipient -- recipient email to be checked.
         """
         # finds user with the entered email in the database.

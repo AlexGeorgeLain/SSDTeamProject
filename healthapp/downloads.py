@@ -15,7 +15,7 @@ from healthapp import db
 def download_record(user_email, record_type):
     """Downloads data of the given user and record.
 
-    Keyword arguments:
+    Args:
         user_email -- the email of the user whose data is to be downloaded.
         record_type - the type of record to be downloaded.
     """
