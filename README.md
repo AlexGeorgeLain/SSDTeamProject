@@ -9,9 +9,9 @@ file. These packages can be installed in your own virtual environment using the
 `$ pip install -r requirements.txt` command.
 
 The server can be started by using the `$ python run.py` command while in the project
-root directory. Once the server is running, the web app can be accessed at
-http://127.0.0.1:5000. There are three accounts in the default database which can
-be used to log in to the app. No functionality is available to unauthorised users.
+root directory. Once the server is running, the web app can be accessed by navigating to 
+http://127.0.0.1:5000 in a web browser. There are three accounts in the default database
+which can be used to log in to the app. No functionality is available to unauthorised users.
 
 These default logins are: 
 
