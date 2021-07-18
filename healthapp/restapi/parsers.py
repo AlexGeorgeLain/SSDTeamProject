@@ -9,7 +9,7 @@ roles = ['Admin', 'Astronaut', 'Medic']
 
 # the UserApi get request parser
 user_get_args = reqparse.RequestParser()
-user_get_args.add_argument('email', type=str, help='User email required', required=True)
+user_get_args.add_argument('email', type=str, help='User email required. \'all\' for all users.', required=True)
 user_get_args.add_argument('token', type=str, help='Auth token required', required=True)
 
 # the UserApi put request parser
@@ -42,9 +42,9 @@ login_args.add_argument('email', type=str, help='User email required', required=
 login_args.add_argument('password', type=str, help='User password required', required=True)
 
 # the RecordApi post request parser
-record_post_args = reqparse.RequestParser()
-record_post_args.add_argument('record', type=str, help='Record required', required=True)
-record_post_args.add_argument('token', type=str, help='Auth token required', required=True)
+record_put_args = reqparse.RequestParser()
+record_put_args.add_argument('record', type=str, help='Record required', required=True)
+record_put_args.add_argument('token', type=str, help='Auth token required', required=True)
 
 # the RecordApi get request parser
 record_get_args = reqparse.RequestParser()
@@ -57,8 +57,8 @@ post_get_args.add_argument('token', type=str, help='Auth token required', requir
 post_get_args.add_argument('email', type=str, help='User email required', required=True)
 
 # the PostApi post request parser
-post_post_args = reqparse.RequestParser()
-post_post_args.add_argument('token', type=str, help='Auth token required', required=True)
-post_post_args.add_argument('email', type=str, help='Recipient email required', required=True)
-post_post_args.add_argument('content', type=str, help='Content required', required=True)
-post_post_args.add_argument('title', type=str, help='Title required', required=True)
+post_put_args = reqparse.RequestParser()
+post_put_args.add_argument('token', type=str, help='Auth token required', required=True)
+post_put_args.add_argument('email', type=str, help='Recipient email required', required=True)
+post_put_args.add_argument('content', type=str, help='Content required', required=True)
+post_put_args.add_argument('title', type=str, help='Title required', required=True)

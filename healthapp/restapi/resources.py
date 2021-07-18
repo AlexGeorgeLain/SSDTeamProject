@@ -18,7 +18,7 @@ from healthapp.encryption import encrypt_post, encrypt_medical_record, decrypt_m
 
 from healthapp.restapi.parsers import user_get_args, user_delete_args,\
 		user_put_args, user_patch_args, login_args, record_get_args,\
-		record_post_args, post_get_args, post_post_args
+		record_put_args, post_get_args, post_put_args
 
 from flask_restful import Resource, abort, fields, marshal_with
 from cryptography.fernet import Fernet
@@ -45,10 +45,16 @@ def check_token(token):
 	try:
 		# decodes the token and extracts the data stored in it.
 		data = jwt.decode(token, app.config['SECRET_KEY'], 'HS256')
+
 		# finds the current user's information in the database.
 		current_user = User.query.filter_by(email=data['email']).first()
-		# returns the current user.
-		return current_user
+
+		# returns current_user if user is found in the database.
+		if current_user:
+			return current_user
+
+		else:
+			abort(403, message='Invalid token. Please login.')
 
 	# if an error occurs when decoding the token, or the token is expired,
 	# then the below access denied error is sent along with the message.
@@ -89,7 +95,7 @@ class LoginApi(Resource):
 			# and expiry time stored in it.
 			# 'exp' is the expiry time: login time + an amount of time.
 			token = jwt.encode({'email': user.email,
-								'exp': datetime.utcnow() + timedelta(seconds=5)},
+								'exp': datetime.utcnow() + timedelta(minutes=10)},
 								app.config['SECRET_KEY'], algorithm='HS256')
 
 			# returns the web token.
@@ -248,21 +254,22 @@ class UserApi(Resource):
 		# the user is deleted and the below message is returned.
 		if current_user.email == args['email']:
 			delete_user_from_db(current_user.email)
-			return {'message': 'User Deleted'}
 
-		# checks the user is an admin.
-		check_user_role(current_user, 'Admin')
+		else:
+			# checks the user is an admin.
+			check_user_role(current_user, 'Admin')
 
-		# looks for a user with the passed in email in the database.
-		user = User.query.filter_by(email=args['email']).first()
+			# looks for a user with the passed in email in the database.
+			user = User.query.filter_by(email=args['email']).first()
 
-		# if the user is not in the database then returns a not found error.
-		if not user:
-			abort(404, message="User does not exist, cannot be deleted.")
+			# if the user is not in the database then returns a not found error.
+			if not user:
+				abort(404, message="User does not exist, cannot be deleted.")
 
-		# deletes the all information associated with the passed in email from the database.
-		delete_user_from_db(args['email'])
-		return {'message': 'User Deleted'}
+			# deletes the all information associated with the passed in email from the database.
+			delete_user_from_db(args['email'])
+
+		return {'message': f'User {args["email"]} deleted'}
 
 
 # adds the UserApi resource to the api.
@@ -301,6 +308,9 @@ class RecordApi(Resource):
 
 				user = User.query.filter_by(email=args['email']).first()
 
+				if not user or user.role != 'Astronaut':
+					return abort(404, message='User not found or not an astronaut.')
+
 				encrypted_bp = BloodPressure.query.filter_by(user_id=user.id).order_by(
 					BloodPressure.date_posted.desc()).all()
 
@@ -326,6 +336,9 @@ class RecordApi(Resource):
 
 				user = User.query.filter_by(email=args['email']).first()
 
+				if not user or user.role != 'Astronaut':
+					return abort(404, message='User not found or not an astronaut.')
+
 				encrypted_weight = Weight.query.filter_by(user_id=user.id).order_by(
 					Weight.date_posted.desc()).all()
 
@@ -334,11 +347,11 @@ class RecordApi(Resource):
 				return jsonify(posts)
 
 		# access denied error
-		return abort(403, message='Access denied.')
+		return abort(403, message='Access denied. Check token or request records')
 
-	def post(self, record_type):
+	def put(self, record_type):
 		# Parses the arguments passed in the request.
-		args = record_post_args.parse_args()
+		args = record_put_args.parse_args()
 		# checks the token sent with the request.
 		current_user = check_token(args['token'])
 		# checks the current user is an astronaut.
@@ -414,6 +427,9 @@ class PostApi(Resource):
 		# looks for a user with the passed in email address in the database.
 		user = User.query.filter_by(email=args['email']).first()
 
+		if not user:
+			return abort(404, message='User not found.')
+
 		# finds all posts between the current user and the user passed in.
 		encrypted_posts = db.session.query(Post) \
 			.where(((Post.user_id == user.id) & (Post.recipient == current_user.email))
@@ -435,34 +451,35 @@ class PostApi(Resource):
 		# returns the posts as json.
 		return jsonify(posts)
 
-	def post(self):
+	def put(self):
 		# Parses the arguments passed in the request.
-		args = post_post_args.parse_args()
+		args = post_put_args.parse_args()
 		# checks the token sent with the request.
 		current_user = check_token(args['token'])
 
 		# looks for a user with the passed in email address in the database.
-		user = User.query.filter_by(email=args['email'])
+		user = User.query.filter_by(email=args['email']).first()
 
 		# if the user is not in the database then returns a not found error.
 		if not user:
-			return {'message': 'Recipient email not found.'}
+			return abort(404, message='Recipient not found')
 
-		# encrypts the content passed in the request.
-		encrypted_content = encrypt_post(args['content'], args['email'])
+		else:
+			# encrypts the content passed in the request.
+			encrypted_content = encrypt_post(args['content'], args['email'])
 
-		# new post object containing the pass in data.
-		post = Post(recipient=args['email'],
-					title=args['title'],
-					content=encrypted_content,
-					author=current_user)
+			# new post object containing the pass in data.
+			post = Post(recipient=args['email'],
+						title=args['title'],
+						content=encrypted_content,
+						user_id=current_user.id)
 
-		# new post added to the database and the change is committed.
-		db.session.add(post)
-		db.session.commit()
+			# new post added to the database and the change is committed.
+			db.session.add(post)
+			db.session.commit()
 
-		# returns success message.
-		return {'message': f'Post sent to {args["email"]}.'}
+			# returns success message.
+			return {'message': f'Post sent to {args["email"]}.'}
 
 
 # adds the PostApi resource to the api.

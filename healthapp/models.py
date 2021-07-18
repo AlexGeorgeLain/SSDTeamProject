@@ -54,7 +54,7 @@ class Post(db.Model):
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     content = db.Column(db.Text, nullable=False)
 
-    # foreign key for the backref int eh User table.
+    # foreign key for the backref in the User table.
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
