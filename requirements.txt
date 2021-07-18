@@ -1,5 +1,11 @@
+Flask~=2.0.1
+Flask-SQLAlchemy
+Flask-Bcrypt
+Flask-Login
+Flask-RESTful
+Flask-Limiter
+Flask-Migrate
+cryptography~=3.4.7
+WTForms~=2.3.3
 requests~=2.25.1
 PyJWT~=2.1.0
-cryptography~=3.4.7
-Flask~=2.0.1
-WTForms~=2.3.3
