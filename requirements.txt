@@ -9,3 +9,4 @@ cryptography~=3.4.7
 WTForms~=2.3.3
 requests~=2.25.1
 PyJWT~=2.1.0
+email-validator
