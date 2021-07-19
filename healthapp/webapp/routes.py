@@ -370,8 +370,9 @@ def download_data(email, record_type):
         os.remove('ExportedData.csv')
         return response
 
-    if current_user.email == email or \
-            current_user.role in ['Admin', 'Medic']:
+    if current_user.email == email\
+            or current_user.role in ['Admin', 'Medic']\
+            or record_type == 'Posts':
         # downloads the requested records.
         return download_record(email, record_type)
 
