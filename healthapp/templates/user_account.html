@@ -1,9 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
   {% if current_user.role == 'Admin' %}
-    <div>
-      <button type="button" class="btn btn-danger btn-sm m-1" data-toggle="modal" data-target="#deleteModal">Delete User</button>
-    </div>
+
     <!-- Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -33,7 +31,31 @@
       </div>
     </div>
   </div>
-  <a class="mr-2" href="{{ url_for('download_data', email=user.email, record_type='Posts') }}">Download Data</a>
+
+<div class="row mb-4">
+  <div class="col-sm-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Download your data</h5>
+        <p class="card-text">Download all your health records in CSV format</p>
+          <a class="mr-2 btn btn-primary" href="{{ url_for('download_data', email=user.email, record_type='Posts') }}">Download Data</a>
+
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Delete your Account</h5>
+        <p class="card-text">This button will permanently delete your account</p>
+      <button type="button" class="btn btn btn-outline-danger btn-sm m-1" data-toggle="modal" data-target="#deleteModal">Delete User</button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
     {% for post in posts %}
         <article class="media content-section">
           <div class="media-body">
