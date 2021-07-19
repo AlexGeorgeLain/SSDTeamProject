@@ -5,6 +5,7 @@ Functions:
 """
 
 import csv
+from pathlib import Path
 from flask_login import current_user
 from flask import send_file
 from healthapp.encryption import decrypt_post, decrypt_medical_record
@@ -19,7 +20,7 @@ def download_record(user_email, record_type):
         user_email -- the email of the user whose data is to be downloaded.
         record_type - the type of record to be downloaded.
     """
-    path = 'ExportedData.csv'   # path csv is temporarily saved to.
+    path = Path(__file__).parent / "../ExportedData.csv"   # path csv is temporarily saved to.
     user = User.query.filter_by(email=user_email).first()   # user that owns the record
 
     if record_type == 'Posts':

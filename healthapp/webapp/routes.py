@@ -23,6 +23,7 @@ Functions:
 """
 
 import os
+from pathlib import Path
 from flask import render_template, url_for, flash, redirect, request, abort, after_this_request
 from flask_login import login_user, current_user, logout_user, login_required
 from cryptography.fernet import Fernet
@@ -367,7 +368,7 @@ def download_data(email, record_type):
     @after_this_request
     def delete_file(response):
         # deletes the temporary csv file.
-        os.remove('ExportedData.csv')
+        os.remove(Path(__file__).parent / "../ExportedData.csv" )
         return response
 
     if current_user.email == email\
