@@ -21,7 +21,8 @@ class RegistrationForm(FlaskForm):
     last_name = StringField('Last Name', validators=[DataRequired(), Length(min=2, max=20)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(),
+                                                                     EqualTo('password')])
     role = StringField("Role: 'Admin', 'Astronaut', or 'Medic'", validators=[DataRequired()])
     submit = SubmitField('Register User')
 
@@ -62,9 +63,9 @@ class LoginForm(FlaskForm):
 class PostForm(FlaskForm):
     """User post form."""
 
-    title = StringField('Title', validators=[DataRequired()])
+    title = StringField('Title', validators=[DataRequired(), Length(min=1, max=60)])
     recipient = StringField('Recipient', validators=[DataRequired(), Email()])
-    content = TextAreaField('Content', validators=[DataRequired()])
+    content = TextAreaField('Content', validators=[DataRequired(), Length(min=1, max=500)])
     submit = SubmitField('Post')
 
     def validate_recipient(self, recipient):
@@ -85,12 +86,9 @@ class PostForm(FlaskForm):
 class BloodPressureForm(FlaskForm):
     """Astronaut form for adding a blood pressure record."""
 
-    blood_pressure = StringField('Blood Pressure', validators=[DataRequired(), Length(min=1, max=10)])
+    blood_pressure = StringField('Blood Pressure', validators=[DataRequired(),
+                                                               Length(min=1, max=12)])
     submit = SubmitField('Submit')
-
-    def validate_bp(self, blood_pressure):
-        """best way to validate?"""
-        pass
 
 
 class WeightForm(FlaskForm):
@@ -98,7 +96,3 @@ class WeightForm(FlaskForm):
 
     weight = StringField('Weight', validators=[DataRequired(), Length(min=1, max=12)])
     submit = SubmitField('Submit')
-
-    def validate_weight(self, weight):
-        """best way to validate?"""
-        pass

@@ -1,5 +1,5 @@
 import requests
-from healthapp.rebuild_db import rebuild_db
+from healthapp.restapi.tests.rebuild_db import rebuild_db
 
 def login_test():
 

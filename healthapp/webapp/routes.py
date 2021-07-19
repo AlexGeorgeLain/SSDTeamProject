@@ -8,6 +8,7 @@ Functions:
     blood_pressure -- loads page for creating new blood pressure record.
     weight -- loads page for creating new weight record.
     astronauts -- loads page showing all astronauts.
+    medics -- loads page showing all medics.
     astronauts_blood_pressure -- loads page showing all blood pressure records
     for a given astronaut.
     astronauts_weight -- loads page showing all weight records for a given astronaut.
@@ -28,13 +29,13 @@ from cryptography.fernet import Fernet
 from healthapp import app, db, bcrypt
 from healthapp.models import User, Post, BloodPressure, Weight, delete_user_from_db
 
-from healthapp.forms import RegistrationForm, LoginForm, \
+from healthapp.webapp.forms import RegistrationForm, LoginForm, \
     PostForm, BloodPressureForm, WeightForm
 
 from healthapp.encryption import encrypt_medical_record,\
     decrypt_medical_record, encrypt_post, decrypt_post
 
-from healthapp.downloads import download_record
+from healthapp.webapp.downloads import download_record
 
 
 @app.route("/")
@@ -56,8 +57,8 @@ def home():
     for encrypted_post in encrypted_posts:
         post_list = [encrypted_post]    # decrypt() post takes a list as an argument.
         if post_list[0].recipient == current_user.email:
-                # decrypts post using the current user's key.
-                posts.append(decrypt_post(post_list, current_user.key)[0])
+            # decrypts post using the current user's key.
+            posts.append(decrypt_post(post_list, current_user.key)[0])
 
         else:
             # pulls the recipient's user data form the database.
@@ -172,7 +173,7 @@ def blood_pressure():
     # passes the decrypted data into the html, along with
     # the page title, form legend, and form.
     return render_template('blood_pressure.html', title='Blood Pressure',
-                           form=form, posts=posts,  legend='New Blood Pressure')
+                           form=form, posts=posts, legend='New Blood Pressure')
 
 
 @app.route("/weight", methods=['GET', 'POST'])
@@ -209,7 +210,7 @@ def weight():
     # passes the decrypted data into the html, along with
     # the page title, form legend, and form.
     return render_template('weight.html', title='Weight',
-                           posts=posts,form=form, legend='New Weight')
+                           posts=posts, form=form, legend='New Weight')
 
 
 @app.route("/astronauts")
@@ -223,16 +224,34 @@ def astronauts():
 
     if current_user.role in ['Admin', 'Medic']:
         # pulls all users with the astronaut role from the database.
-        astronauts = User.query.filter_by(role='Astronaut').all()
+        all_astronauts = User.query.filter_by(role='Astronaut').all()
         # passes astronauts data and page title into the html.
-        return render_template('users_list.html', posts=astronauts, title='Astronauts')
+        return render_template('users_list.html', posts=all_astronauts, title='Astronauts')
+
+    return abort(403)   # access denied error if current user has an incorrect role.
+
+
+@app.route("/medics")
+@login_required
+def medics():
+    """
+    Loads a page that displays all the current medics in the database,
+    providing the  current user has the required role.
+
+    """
+
+    if current_user.role in ['Admin', 'Astronaut']:
+        # pulls all users with the medic role from the database.
+        all_medics = User.query.filter_by(role='Medic').all()
+        # passes medic data and page title into the html.
+        return render_template('users_list.html', posts=all_medics, title='Astronauts')
 
     return abort(403)   # access denied error if current user has an incorrect role.
 
 
 @app.route("/accounts/<string:email>/bloodpressure")
 @login_required
-def astronauts_blood_pressure(email, retunr=None):
+def astronauts_blood_pressure(email):
     """
     Loads page displaying the blood pressure records of a given astronaut,
     proving that the current user has the correct role, or is the astronaut.
@@ -251,7 +270,7 @@ def astronauts_blood_pressure(email, retunr=None):
                 filter_by(user_id=user.id).order_by(BloodPressure.date_posted.desc()).all()
             # decrypts the  users records.
             records = decrypt_medical_record(encrypted_bp,
-                                           User.query.filter_by(email=email).first().key)
+                                             User.query.filter_by(email=email).first().key)
             # passes records, user, and title into the html.
             return render_template('single_medical_record.html', posts=records,
                                    user=user, title='Blood Pressure')
@@ -311,7 +330,7 @@ def user_posts(email):
         # finds all post in the database between the current user and the user passed in.
         encrypted_posts = db.session.query(Post)\
             .where(((Post.user_id == user.id) & (Post.recipient == current_user.email))
-                    | ((Post.user_id == current_user.id) & (Post.recipient == user.email)))\
+                   | ((Post.user_id == current_user.id) & (Post.recipient == user.email)))\
             .order_by(Post.date_posted.desc()).all()
 
         posts = []  # empty list for decrypted posts to be appended to.
@@ -381,11 +400,13 @@ def user_account(email):
 
         posts = []  # empty list for decrypted posts to be appended to.
 
-        # posts are decrypted with the appropriate key based on the recipient and appended to the posts list.
+        # posts are decrypted with the appropriate key based on the
+        # recipient and appended to the posts list.
         for encrypted_post in encrypted_posts:
             post_list = [encrypted_post]    # decrypt_post() takes a list as an argument
 
-            # posts are decrypted with the appropriate key based on the recipient and appended to the posts list.
+            # posts are decrypted with the appropriate key based on the recipient
+            # and appended to the posts list.
             if post_list[0].recipient == current_user.email:
                 posts.append(decrypt_post(post_list, current_user.key)[0])
 

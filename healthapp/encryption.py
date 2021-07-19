@@ -44,7 +44,8 @@ def decrypt_medical_record(encrypted_posts, key):
         # decrypts the data using fernet and the user's key, and decodes it to a utf-8 string.
         decrypted_data = Fernet(key.encode()).decrypt(encrypted_data).decode('utf-8')
 
-        # writes the decrypted record to a dictionary, along with other record info from the database.
+        # writes the decrypted record to a dictionary, along with other record
+        # info from the database.
         decrypted_posts.append({'id': post.id,
                                 'author': post.author.email,
                                 'date_posted': post.date_posted.strftime('%Y-%m-%d'),
