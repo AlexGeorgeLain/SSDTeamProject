@@ -72,7 +72,7 @@ user.
 
 `PUT /api/post` allows a user to send a private message to another user in the database.
 
-Full examples of the API use are available in the _/healthapp/restapi/tests_ folder.
+Full examples of the API uses, including the required arguments, are available in the _/healthapp/restapi/tests_ folder.
 
 ### Testing
 
