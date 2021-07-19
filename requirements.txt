@@ -1,4 +1,4 @@
-Flask~=2.0.1
+Flask
 SQLAlchemy
 Flask-SQLAlchemy
 Flask-Bcrypt
@@ -7,8 +7,8 @@ Flask-RESTful
 Flask-Limiter
 Flask-Migrate
 Flask-WTF
-cryptography~=3.4.7
-WTForms~=2.3.3
-requests~=2.25.1
-PyJWT~=2.1.0
+cryptography
+WTForms
+requests
+PyJWT
 email-validator
