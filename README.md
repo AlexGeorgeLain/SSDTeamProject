@@ -8,7 +8,7 @@ packages used in this project can be found in the _requirements.txt_ file. These
 own virtual environment using the `$ pip install -r requirements.txt` command. All the packages and technologies used
 in the development of this project are open-source as required by the project specifications.
 
-The server can be started by using the `$ python run.py` command while in the project root directory. Once the server 
+The server can be started by using the `$ python3 run.py` command while in the project root directory. Once the server 
 is running, the web app can be accessed by navigating to http://127.0.0.1:5000 in a web browser. If port 5000 is 
 already in use, then the port from which the web app may be accessed can be found in the console where the server is 
 running. There are three accounts in the default database which can be used to log into the app. No functionality is
